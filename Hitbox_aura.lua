@@ -33,13 +33,18 @@ end
 local function doKillAura()
     local char = lp.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+    -- Check if player is holding a tool/weapon
+    local tool = char:FindFirstChildOfClass("Tool")
+    if not tool then return end
+
     for _, m in ipairs(game:GetDescendants()) do
         if m:IsA("Model") and m:FindFirstChild("Humanoid") and m:FindFirstChild("HumanoidRootPart") then
             if onlyAffectNPCs and isPlayerModel(m) then continue end
             local h = m.Humanoid
-            local d = (m.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
-            if d <= auraRange and h.Health > 0 then
-                h:TakeDamage(10)
+            local dist = (m.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+            if dist <= auraRange and h.Health > 0 then
+                h.Health = 0 -- One-hit kill 💀
             end
         end
     end
