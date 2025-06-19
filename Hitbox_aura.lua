@@ -1,7 +1,7 @@
 -- hitbox_aura.lua
 local hitboxSize = Vector3.new(5,5,5)
 local normalSize = Vector3.new(2,1,1)
-local auraRange = 100
+local auraRange = 10
 local onlyAffectNPCs = true
 
 local toggleHitbox = true
@@ -30,26 +30,34 @@ local function setHeadHitboxes(size, transparency)
     end
 end
 
-local function doKillAura()
+-- ✅ NEW: Auto Aim to Closest NPC Head
+local function doAutoAimToHead()
     local char = lp.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
 
-    -- Check if player is holding a tool/weapon
-    local tool = char:FindFirstChildOfClass("Tool")
-    if not tool then return end
+    local closestHead = nil
+    local shortestDistance = math.huge
 
     for _, m in ipairs(game:GetDescendants()) do
-        if m:IsA("Model") and m:FindFirstChild("Humanoid") and m:FindFirstChild("HumanoidRootPart") then
+        if m:IsA("Model") and m:FindFirstChild("Humanoid") and m:FindFirstChild("Head") then
             if onlyAffectNPCs and isPlayerModel(m) then continue end
-            local h = m.Humanoid
-            local dist = (m.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
-            if dist <= auraRange and h.Health > 0 then
-                h.Health = 0 -- One-hit kill 💀
+            local head = m.Head
+            local dist = (head.Position - hrp.Position).Magnitude
+            if dist < shortestDistance and dist <= auraRange then
+                closestHead = head
+                shortestDistance = dist
             end
         end
     end
+
+    if closestHead then
+        local cam = workspace.CurrentCamera
+        cam.CFrame = CFrame.new(cam.CFrame.Position, closestHead.Position)
+    end
 end
 
+-- Threads
 task.spawn(function()
     while true do
         task.wait(5)
@@ -60,10 +68,11 @@ end)
 task.spawn(function()
     while true do
         task.wait(0.25)
-        if toggleAura then doKillAura() end
+        if toggleAura then doAutoAimToHead() end
     end
 end)
 
+-- GUI
 local gui = Instance.new("ScreenGui")
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
@@ -84,7 +93,7 @@ local auraBtn = Instance.new("TextButton")
 auraBtn.Size = UDim2.new(0,130,0,40)
 auraBtn.Position = UDim2.new(1,-140,1,-110)
 auraBtn.BackgroundColor3 = Color3.fromRGB(50,50,255)
-auraBtn.Text = "Kill Aura: ON"
+auraBtn.Text = "Auto Aim: ON"
 auraBtn.TextColor3 = Color3.new(1,1,1)
 auraBtn.TextScaled = true
 auraBtn.ZIndex = 9999
@@ -105,6 +114,6 @@ end)
 
 auraBtn.MouseButton1Click:Connect(function()
     toggleAura = not toggleAura
-    auraBtn.Text = "Kill Aura: " .. (toggleAura and "ON" or "OFF")
+    auraBtn.Text = "Auto Aim: " .. (toggleAura and "ON" or "OFF")
     auraBtn.BackgroundColor3 = toggleAura and Color3.fromRGB(50,50,255) or Color3.fromRGB(80,80,80)
 end)
