@@ -1,6 +1,6 @@
 -- Draggable UI with Switches for Each Function (Hitbox / Kill Aura) -- Mobile Friendly, Toggle Each Feature, Minimizable GUI
 
-local Players = game:GetService("Players") local lp = Players.LocalPlayer local hitboxSize = Vector3.new(5,5,5) local normalSize = Vector3.new(2,1,1) local auraRange = 100 local onlyAffectNPCs = true local toggleHitbox = false local toggleAura = false
+local Players = game:GetService("Players") local lp = Players.LocalPlayer local hitboxSize = Vector3.new(5,5,5) local normalSize = Vector3.new(2,1,1) local auraRange = 10 local onlyAffectNPCs = true local toggleHitbox = false local toggleAura = false
 
 -- UTILITY local function isPlayerModel(m) for _, p in ipairs(Players:GetPlayers()) do if p.Character == m then return true end end return false end
 
