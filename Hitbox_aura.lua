@@ -30,7 +30,7 @@ local function setHeadHitboxes(size, transparency)
     end
 end
 
--- ✅ NEW: Auto Aim to Closest NPC Head
+-- ✅ Auto Aim to Closest NPC Head
 local function doAutoAimToHead()
     local char = lp.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -81,7 +81,7 @@ gui.Parent = game.CoreGui
 
 local hitboxBtn = Instance.new("TextButton")
 hitboxBtn.Size = UDim2.new(0,130,0,40)
-hitboxBtn.Position = UDim2.new(1,-140,1,-60)
+hitboxBtn.Position = UDim2.new(1, -150, 0, 20) -- 📍 Top-right
 hitboxBtn.BackgroundColor3 = Color3.fromRGB(255,50,50)
 hitboxBtn.Text = "Hitbox: ON"
 hitboxBtn.TextColor3 = Color3.new(1,1,1)
@@ -91,7 +91,7 @@ hitboxBtn.Parent = gui
 
 local auraBtn = Instance.new("TextButton")
 auraBtn.Size = UDim2.new(0,130,0,40)
-auraBtn.Position = UDim2.new(1,-140,1,-110)
+auraBtn.Position = UDim2.new(1, -150, 0, 70) -- 📍 Below Hitbox
 auraBtn.BackgroundColor3 = Color3.fromRGB(50,50,255)
 auraBtn.Text = "Auto Aim: ON"
 auraBtn.TextColor3 = Color3.new(1,1,1)
