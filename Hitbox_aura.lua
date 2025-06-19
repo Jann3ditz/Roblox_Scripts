@@ -6,6 +6,7 @@ local onlyAffectNPCs = true
 
 local toggleHitbox = true
 local toggleAura = true
+local toggleShield = true
 local Players = game:GetService("Players")
 local lp = Players.LocalPlayer
 
@@ -30,7 +31,6 @@ local function setHeadHitboxes(size, transparency)
     end
 end
 
--- ✅ Auto Aim to Closest NPC Head
 local function doAutoAimToHead()
     local char = lp.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -57,7 +57,7 @@ local function doAutoAimToHead()
     end
 end
 
--- Threads
+-- Auto threads
 task.spawn(function()
     while true do
         task.wait(5)
@@ -72,6 +72,48 @@ task.spawn(function()
     end
 end)
 
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if toggleShield then
+            local char = lp.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.Health = char.Humanoid.MaxHealth
+            end
+        end
+    end
+end)
+
+-- 🛡️ Create Invisible Physical Shield Around Player
+local function createShieldBarrier()
+    local char = lp.Character or lp.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    local shield = Instance.new("Part")
+    shield.Name = "InvisibleShield"
+    shield.Size = Vector3.new(10, 10, 10) -- Bigger than character
+    shield.Transparency = 1
+    shield.CanCollide = true
+    shield.Anchored = false
+    shield.Massless = true
+    shield.Parent = workspace
+
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = shield
+    weld.Part1 = hrp
+    weld.Parent = shield
+end
+
+-- Create shield when character spawns
+lp.CharacterAdded:Connect(function()
+    task.wait(1)
+    createShieldBarrier()
+end)
+
+if lp.Character then
+    createShieldBarrier()
+end
+
 -- GUI
 local gui = Instance.new("ScreenGui")
 gui.ResetOnSpawn = false
@@ -79,25 +121,22 @@ gui.IgnoreGuiInset = true
 gui.Name = "CustomGUI"
 gui.Parent = game.CoreGui
 
-local hitboxBtn = Instance.new("TextButton")
-hitboxBtn.Size = UDim2.new(0,130,0,40)
-hitboxBtn.Position = UDim2.new(1, -150, 0, 20) -- 📍 Top-right
-hitboxBtn.BackgroundColor3 = Color3.fromRGB(255,50,50)
-hitboxBtn.Text = "Hitbox: ON"
-hitboxBtn.TextColor3 = Color3.new(1,1,1)
-hitboxBtn.TextScaled = true
-hitboxBtn.ZIndex = 9999
-hitboxBtn.Parent = gui
+local function createButton(name, yPos, color, defaultText)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0,130,0,40)
+    btn.Position = UDim2.new(1, -150, 0, yPos)
+    btn.BackgroundColor3 = color
+    btn.Text = defaultText
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.TextScaled = true
+    btn.ZIndex = 9999
+    btn.Parent = gui
+    return btn
+end
 
-local auraBtn = Instance.new("TextButton")
-auraBtn.Size = UDim2.new(0,130,0,40)
-auraBtn.Position = UDim2.new(1, -150, 0, 70) -- 📍 Below Hitbox
-auraBtn.BackgroundColor3 = Color3.fromRGB(50,50,255)
-auraBtn.Text = "Auto Aim: ON"
-auraBtn.TextColor3 = Color3.new(1,1,1)
-auraBtn.TextScaled = true
-auraBtn.ZIndex = 9999
-auraBtn.Parent = gui
+local hitboxBtn = createButton("Hitbox", 20, Color3.fromRGB(255,50,50), "Hitbox: ON")
+local auraBtn   = createButton("Auto Aim", 70, Color3.fromRGB(50,50,255), "Auto Aim: ON")
+local shieldBtn = createButton("Shield", 120, Color3.fromRGB(50,200,50), "Shield: ON")
 
 hitboxBtn.MouseButton1Click:Connect(function()
     toggleHitbox = not toggleHitbox
@@ -116,4 +155,10 @@ auraBtn.MouseButton1Click:Connect(function()
     toggleAura = not toggleAura
     auraBtn.Text = "Auto Aim: " .. (toggleAura and "ON" or "OFF")
     auraBtn.BackgroundColor3 = toggleAura and Color3.fromRGB(50,50,255) or Color3.fromRGB(80,80,80)
+end)
+
+shieldBtn.MouseButton1Click:Connect(function()
+    toggleShield = not toggleShield
+    shieldBtn.Text = "Shield: " .. (toggleShield and "ON" or "OFF")
+    shieldBtn.BackgroundColor3 = toggleShield and Color3.fromRGB(50,200,50) or Color3.fromRGB(80,80,80)
 end)
