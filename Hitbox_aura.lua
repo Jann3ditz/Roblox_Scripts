@@ -4,8 +4,8 @@ local normalSize = Vector3.new(2,1,1)
 local auraRange = 500
 local onlyAffectNPCs = true
 
-local toggleHitbox = true
-local toggleAura = true
+local toggleHitbox = false
+local toggleAura = false
 local Players = game:GetService("Players")
 local lp = Players.LocalPlayer
 
@@ -56,6 +56,59 @@ local function doAutoAimToHead()
     end
 end
 
+-- Float Follow & Kill Logic
+local function tpFollowAndKillNPCs()
+    local char = lp.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+    local tool = char:FindFirstChildOfClass("Tool")
+
+    local originalAnchor = hrp.Anchored
+
+    for _, m in ipairs(game:GetDescendants()) do
+        if m:IsA("Model") and m:FindFirstChild("Humanoid") and m:FindFirstChild("Head") and m:FindFirstChild("HumanoidRootPart") then
+            if onlyAffectNPCs and isPlayerModel(m) then continue end
+
+            local head = m.Head
+            local humanoid = m.Humanoid
+            local root = m.HumanoidRootPart
+
+            if humanoid.Health > 0 then
+                hrp.Anchored = false
+
+                local alignPos = Instance.new("AlignPosition", hrp)
+                alignPos.Mode = Enum.PositionAlignmentMode.OneAttachment
+                alignPos.RigidityEnabled = true
+                alignPos.MaxForce = 100000
+                alignPos.Responsiveness = 200
+
+                local att0 = Instance.new("Attachment", hrp)
+                local att1 = Instance.new("Attachment", root)
+
+                att1.Position = Vector3.new(0, 7, 0)
+
+                alignPos.Attachment0 = att0
+                alignPos.Attachment1 = att1
+
+                while humanoid.Health > 0 and humanoid.Parent ~= nil do
+                    task.wait(0.2)
+                    if tool and tool:FindFirstChild("Handle") then
+                        humanoid:TakeDamage(9999)
+                    end
+                end
+
+                alignPos:Destroy()
+                att0:Destroy()
+                att1:Destroy()
+
+                task.wait(0.2)
+            end
+        end
+    end
+
+    hrp.Anchored = originalAnchor
+end
+
 -- Threads
 task.spawn(function()
     while true do
@@ -71,39 +124,7 @@ task.spawn(function()
     end
 end)
 
--- Float + TP Kill
-local function tpKillNPCs()
-    local char = lp.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = char.HumanoidRootPart
-
-    local originalAnchor = hrp.Anchored
-
-    for _, m in ipairs(game:GetDescendants()) do
-        if m:IsA("Model") and m:FindFirstChild("Humanoid") and m:FindFirstChild("Head") then
-            if onlyAffectNPCs and isPlayerModel(m) then continue end
-
-            local head = m.Head
-            local humanoid = m.Humanoid
-
-            if humanoid.Health > 0 then
-                -- Float above the enemy
-                hrp.CFrame = CFrame.new(head.Position + Vector3.new(0, 5, 0))
-                hrp.Anchored = true
-
-                -- Kill enemy and wait until confirmed dead
-                humanoid.Health = 0
-                repeat task.wait(0.1) until humanoid.Health <= 0 or humanoid.Parent == nil
-
-                task.wait(0.1)
-            end
-        end
-    end
-
-    hrp.Anchored = originalAnchor
-end
-
--- GUI Setup
+-- GUI
 local gui = Instance.new("ScreenGui")
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
@@ -123,8 +144,9 @@ local function createButton(name, yPos, color, defaultText)
     return btn
 end
 
-local hitboxBtn = createButton("Hitbox", 20, Color3.fromRGB(255,50,50), "Hitbox: ON")
-local auraBtn   = createButton("Auto Aim", 70, Color3.fromRGB(50,50,255), "Auto Aim: ON")
+-- Start OFF (gray) with "OFF" label
+local hitboxBtn = createButton("Hitbox", 20, Color3.fromRGB(80,80,80), "Hitbox: OFF")
+local auraBtn   = createButton("Auto Aim", 70, Color3.fromRGB(80,80,80), "Auto Aim: OFF")
 local tpKillBtn = createButton("TPKill", 120, Color3.fromRGB(200, 100, 255), "TP Kill")
 
 hitboxBtn.MouseButton1Click:Connect(function()
@@ -147,5 +169,5 @@ auraBtn.MouseButton1Click:Connect(function()
 end)
 
 tpKillBtn.MouseButton1Click:Connect(function()
-    task.spawn(tpKillNPCs)
+    task.spawn(tpFollowAndKillNPCs)
 end)
