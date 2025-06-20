@@ -1,5 +1,5 @@
 -- hitbox_aura.lua
-local hitboxSize = Vector3.new(12, 8, 8)
+local hitboxSize = Vector3.new(25, 15, 15)
 local normalSize = Vector3.new(2,1,1)
 local auraRange = 500
 local onlyAffectNPCs = true
