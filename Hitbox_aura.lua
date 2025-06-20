@@ -6,7 +6,6 @@ local onlyAffectNPCs = true
 
 local toggleHitbox = true
 local toggleAura = true
-local toggleShield = true
 local Players = game:GetService("Players")
 local lp = Players.LocalPlayer
 
@@ -57,7 +56,6 @@ local function doAutoAimToHead()
     end
 end
 
--- Auto threads
 task.spawn(function()
     while true do
         task.wait(5)
@@ -71,48 +69,6 @@ task.spawn(function()
         if toggleAura then doAutoAimToHead() end
     end
 end)
-
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if toggleShield then
-            local char = lp.Character
-            if char and char:FindFirstChild("Humanoid") then
-                char.Humanoid.Health = char.Humanoid.MaxHealth
-            end
-        end
-    end
-end)
-
--- 🛡️ Create Invisible Physical Shield Around Player
-local function createShieldBarrier()
-    local char = lp.Character or lp.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-
-    local shield = Instance.new("Part")
-    shield.Name = "InvisibleShield"
-    shield.Size = Vector3.new(10, 10, 10) -- Bigger than character
-    shield.Transparency = 1
-    shield.CanCollide = true
-    shield.Anchored = false
-    shield.Massless = true
-    shield.Parent = workspace
-
-    local weld = Instance.new("WeldConstraint")
-    weld.Part0 = shield
-    weld.Part1 = hrp
-    weld.Parent = shield
-end
-
--- Create shield when character spawns
-lp.CharacterAdded:Connect(function()
-    task.wait(1)
-    createShieldBarrier()
-end)
-
-if lp.Character then
-    createShieldBarrier()
-end
 
 -- GUI
 local gui = Instance.new("ScreenGui")
@@ -136,7 +92,6 @@ end
 
 local hitboxBtn = createButton("Hitbox", 20, Color3.fromRGB(255,50,50), "Hitbox: ON")
 local auraBtn   = createButton("Auto Aim", 70, Color3.fromRGB(50,50,255), "Auto Aim: ON")
-local shieldBtn = createButton("Shield", 120, Color3.fromRGB(50,200,50), "Shield: ON")
 
 hitboxBtn.MouseButton1Click:Connect(function()
     toggleHitbox = not toggleHitbox
@@ -157,8 +112,30 @@ auraBtn.MouseButton1Click:Connect(function()
     auraBtn.BackgroundColor3 = toggleAura and Color3.fromRGB(50,50,255) or Color3.fromRGB(80,80,80)
 end)
 
-shieldBtn.MouseButton1Click:Connect(function()
-    toggleShield = not toggleShield
-    shieldBtn.Text = "Shield: " .. (toggleShield and "ON" or "OFF")
-    shieldBtn.BackgroundColor3 = toggleShield and Color3.fromRGB(50,200,50) or Color3.fromRGB(80,80,80)
+-- TP Kill
+local function tpKillNPCs()
+    local char = lp.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+
+    for _, m in ipairs(game:GetDescendants()) do
+        if m:IsA("Model") and m:FindFirstChild("Humanoid") and m:FindFirstChild("Head") then
+            if onlyAffectNPCs and isPlayerModel(m) then continue end
+            local head = m.Head
+            local humanoid = m.Humanoid
+
+            if humanoid.Health > 0 then
+                hrp.CFrame = CFrame.new(head.Position + Vector3.new(0, 15, 0))
+                task.wait(0.3)
+                humanoid.Health = 0
+                task.wait(0.3)
+            end
+        end
+    end
+end
+
+local tpKillBtn = createButton("TPKill", 120, Color3.fromRGB(200, 100, 255), "TP Kill")
+
+tpKillBtn.MouseButton1Click:Connect(function()
+    task.spawn(tpKillNPCs)
 end)
