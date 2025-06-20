@@ -112,7 +112,7 @@ auraBtn.MouseButton1Click:Connect(function()
     auraBtn.BackgroundColor3 = toggleAura and Color3.fromRGB(50,50,255) or Color3.fromRGB(80,80,80)
 end)
 
--- TP Kill
+-- 💀 TP Above NPC Head and Kill
 local function tpKillNPCs()
     local char = lp.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -125,7 +125,8 @@ local function tpKillNPCs()
             local humanoid = m.Humanoid
 
             if humanoid.Health > 0 then
-                hrp.CFrame = CFrame.new(head.Position + Vector3.new(0, 15, 0))
+                -- ✅ Now just 5 studs above the head
+                hrp.CFrame = CFrame.new(head.Position + Vector3.new(0, 5, 0))
                 task.wait(0.3)
                 humanoid.Health = 0
                 task.wait(0.3)
