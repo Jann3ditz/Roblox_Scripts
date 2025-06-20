@@ -56,6 +56,7 @@ local function doAutoAimToHead()
     end
 end
 
+-- Threads
 task.spawn(function()
     while true do
         task.wait(5)
@@ -70,7 +71,39 @@ task.spawn(function()
     end
 end)
 
--- GUI
+-- Float + TP Kill
+local function tpKillNPCs()
+    local char = lp.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+
+    local originalAnchor = hrp.Anchored
+
+    for _, m in ipairs(game:GetDescendants()) do
+        if m:IsA("Model") and m:FindFirstChild("Humanoid") and m:FindFirstChild("Head") then
+            if onlyAffectNPCs and isPlayerModel(m) then continue end
+
+            local head = m.Head
+            local humanoid = m.Humanoid
+
+            if humanoid.Health > 0 then
+                -- Float above the enemy
+                hrp.CFrame = CFrame.new(head.Position + Vector3.new(0, 5, 0))
+                hrp.Anchored = true
+
+                -- Kill enemy and wait until confirmed dead
+                humanoid.Health = 0
+                repeat task.wait(0.1) until humanoid.Health <= 0 or humanoid.Parent == nil
+
+                task.wait(0.1)
+            end
+        end
+    end
+
+    hrp.Anchored = originalAnchor
+end
+
+-- GUI Setup
 local gui = Instance.new("ScreenGui")
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
@@ -92,6 +125,7 @@ end
 
 local hitboxBtn = createButton("Hitbox", 20, Color3.fromRGB(255,50,50), "Hitbox: ON")
 local auraBtn   = createButton("Auto Aim", 70, Color3.fromRGB(50,50,255), "Auto Aim: ON")
+local tpKillBtn = createButton("TPKill", 120, Color3.fromRGB(200, 100, 255), "TP Kill")
 
 hitboxBtn.MouseButton1Click:Connect(function()
     toggleHitbox = not toggleHitbox
@@ -111,31 +145,6 @@ auraBtn.MouseButton1Click:Connect(function()
     auraBtn.Text = "Auto Aim: " .. (toggleAura and "ON" or "OFF")
     auraBtn.BackgroundColor3 = toggleAura and Color3.fromRGB(50,50,255) or Color3.fromRGB(80,80,80)
 end)
-
--- 💀 TP Above NPC Head and Kill
-local function tpKillNPCs()
-    local char = lp.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = char.HumanoidRootPart
-
-    for _, m in ipairs(game:GetDescendants()) do
-        if m:IsA("Model") and m:FindFirstChild("Humanoid") and m:FindFirstChild("Head") then
-            if onlyAffectNPCs and isPlayerModel(m) then continue end
-            local head = m.Head
-            local humanoid = m.Humanoid
-
-            if humanoid.Health > 0 then
-                -- ✅ Now just 5 studs above the head
-                hrp.CFrame = CFrame.new(head.Position + Vector3.new(0, 5, 0))
-                task.wait(0.3)
-                humanoid.Health = 0
-                task.wait(0.3)
-            end
-        end
-    end
-end
-
-local tpKillBtn = createButton("TPKill", 120, Color3.fromRGB(200, 100, 255), "TP Kill")
 
 tpKillBtn.MouseButton1Click:Connect(function()
     task.spawn(tpKillNPCs)
