@@ -23,7 +23,7 @@ button.Active = true
 button.Draggable = true
 
 -- Teleport destination
-local targetPosition = Vector3.new(150, 247, 210)
+local targetPosition = Vector3.new(150, 249, 210)
 
 -- On button click, teleport the player
 button.MouseButton1Click:Connect(function()
