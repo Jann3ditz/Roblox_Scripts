@@ -1,8 +1,23 @@
--- 📱 GUI Button with Proper Drag Support
+-- ✅ MOBILE AIMBOT + DRAGGABLE GUI | by Jann3ditz
+-- Only use in private games for testing!
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Wait for character
+repeat wait() until LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+local Camera = workspace.CurrentCamera
+local aimbotEnabled = false
+local maxDistance = 15
+
+-- 📱 GUI Setup
 local gui = Instance.new("ScreenGui")
-gui.ResetOnSpawn = false
 gui.Name = "AimbotGUI"
-gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+gui.ResetOnSpawn = false
+gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local button = Instance.new("TextButton")
 button.Size = UDim2.new(0, 140, 0, 45)
@@ -15,16 +30,12 @@ button.TextColor3 = Color3.new(1,1,1)
 button.Parent = gui
 button.Active = true
 
--- 🧲 Dragging Function (works better on mobile)
-local dragging
-local dragInput
-local dragStart
-local startPos
-
+-- 🧲 Dragging (Mobile Friendly)
+local dragging, dragInput, dragStart, startPos
 local function update(input)
 	local delta = input.Position - dragStart
 	button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-								startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	                            startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
 button.InputBegan:Connect(function(input)
@@ -47,16 +58,24 @@ button.InputChanged:Connect(function(input)
 	end
 end)
 
-game:GetService("UserInputService").InputChanged:Connect(function(input)
+UserInputService.InputChanged:Connect(function(input)
 	if input == dragInput and dragging then
 		update(input)
 	end
 end)
 
--- 🔘 Toggle Logic
-local aimbotEnabled = false
+-- 🔘 Toggle Button
 button.MouseButton1Click:Connect(function()
 	aimbotEnabled = not aimbotEnabled
 	button.Text = "Aimbot: " .. (aimbotEnabled and "ON" or "OFF")
 	button.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 end)
+
+-- 🧠 Aimbot Logic
+RunService.RenderStepped:Connect(function()
+	if not aimbotEnabled then return end
+	if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+
+	local closest, shortest = nil, math.huge
+	for _, plr in pairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Hum
