@@ -1,25 +1,26 @@
 -- ⚙️ Settings
-local hitboxSize = Vector3.new(30, 30, 30) -- safer size
+local hitboxSize = Vector3.new(30, 30, 30) -- Stealthy hitbox
 local player = game.Players.LocalPlayer
+local isEnabled = false
 
 -- 🖱️ Draggable GUI Button
-local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-ScreenGui.Name = "HitboxGUI"
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "HitboxGUI"
 
-local Button = Instance.new("TextButton", ScreenGui)
-Button.Size = UDim2.new(0, 140, 0, 40)
-Button.Position = UDim2.new(0, 20, 0, 100)
-Button.Text = "Apply Hitboxes"
-Button.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
-Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-Button.TextScaled = true
-Button.Active = true
-Button.Draggable = true
+local button = Instance.new("TextButton", gui)
+button.Size = UDim2.new(0, 160, 0, 40)
+button.Position = UDim2.new(0, 20, 0, 100)
+button.Text = "Hitbox: OFF"
+button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.TextScaled = true
+button.Active = true
+button.Draggable = true
 
--- 🛡️ Advanced Anti-Kick
+-- 🛡️ Anti-Kick Hook
 local mt = getrawmetatable(game)
 setreadonly(mt, false)
-local oldNamecall = mt.__namecall
+local old = mt.__namecall
 
 mt.__namecall = newcclosure(function(self, ...)
 	local method = getnamecallmethod()
@@ -27,36 +28,48 @@ mt.__namecall = newcclosure(function(self, ...)
 		warn("[ANTI-KICK] Blocked kick attempt")
 		return nil
 	end
-	return oldNamecall(self, ...)
+	return old(self, ...)
 end)
-
 setreadonly(mt, true)
 
--- 🔁 Hitbox Apply Function (Other players only)
-local function resizeOthers()
-	for _, plr in pairs(game.Players:GetPlayers()) do
+-- 🔁 Apply or Reset Hitboxes
+local function updateHitboxes(enable)
+	for _, plr in ipairs(game.Players:GetPlayers()) do
 		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
 			local root = plr.Character.HumanoidRootPart
-			root.Size = hitboxSize
-			root.CanCollide = false
-			-- 👇 Delayed to reduce server stress
-			task.wait(math.random(0.15, 0.35))
+			if enable then
+				root.Size = hitboxSize
+				root.CanCollide = false
+				root.CanTouch = false
+				root.Massless = true
+			else
+				root.Size = Vector3.new(2, 2, 1) -- default size
+				root.CanCollide = true
+				root.CanTouch = true
+				root.Massless = false
+			end
+			task.wait(0.05)
 		end
 	end
 end
 
--- 🧠 Hook into new players spawning
+-- 🧠 Watch for new players joining
 game.Players.PlayerAdded:Connect(function(plr)
-	plr.CharacterAdded:Connect(function(char)
-		if plr ~= player then
-			char:WaitForChild("HumanoidRootPart")
-			task.wait(1)
-			resizeOthers()
-		end
+	plr.CharacterAdded:Connect(function()
+		task.wait(1)
+		if isEnabled then updateHitboxes(true) end
 	end)
 end)
 
--- 🖱️ Button Click = Apply hitboxes
-Button.MouseButton1Click:Connect(function()
-	resizeOthers()
+-- 🖱️ Button Click to Toggle ON/OFF
+button.MouseButton1Click:Connect(function()
+	isEnabled = not isEnabled
+	updateHitboxes(isEnabled)
+	if isEnabled then
+		button.Text = "Hitbox: ON"
+		button.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+	else
+		button.Text = "Hitbox: OFF"
+		button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+	end
 end)
