@@ -1,49 +1,44 @@
 -- Settings
-local hitboxSize = Vector3.new(80, 80, 80)
-local targetClass = "Model" -- Can be "Player", "NPC", etc. (adjust if needed)
-local checkInterval = 1 -- seconds between checks
+local hitboxSize = Vector3.new(50, 50, 50)
+local player = game.Players.LocalPlayer
 
--- Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+-- Create Draggable Button
+local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+ScreenGui.Name = "HitboxGUI"
 
--- Function to resize HumanoidRootPart
-local function resizeHitbox(char)
-	if not char then return end
-	local root = char:FindFirstChild("HumanoidRootPart")
-	if root and root:IsA("BasePart") then
-		root.Size = hitboxSize
-		root.CanCollide = false
+local Button = Instance.new("TextButton", ScreenGui)
+Button.Size = UDim2.new(0, 120, 0, 40)
+Button.Position = UDim2.new(0, 20, 0, 100)
+Button.Text = "Expand Hitboxes"
+Button.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.TextScaled = true
+Button.Active = true
+Button.Draggable = true -- Makes the button draggable
+
+-- Function to Resize Hitbox (excluding self)
+local function resizeOthers()
+	for _, plr in pairs(game.Players:GetPlayers()) do
+		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local root = plr.Character.HumanoidRootPart
+			root.Size = hitboxSize
+			root.CanCollide = false
+		end
 	end
 end
 
--- Loop for all existing and new players
-Players.PlayerAdded:Connect(function(player)
-	player.CharacterAdded:Connect(function(char)
-		wait(1) -- wait to ensure character loads
-		resizeHitbox(char)
+-- Auto resize on new character spawn (for others only)
+game.Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function(char)
+		if plr ~= player then
+			char:WaitForChild("HumanoidRootPart")
+			task.wait(1)
+			resizeOthers()
+		end
 	end)
 end)
 
--- Apply to players already in-game
-for _, player in pairs(Players:GetPlayers()) do
-	if player.Character then
-		resizeHitbox(player.Character)
-	end
-	player.CharacterAdded:Connect(function(char)
-		wait(1)
-		resizeHitbox(char)
-	end)
-end
-
--- Optional: Loop for NPCs (assuming they're in workspace and use HumanoidRootPart)
-task.spawn(function()
-	while true do
-		for _, model in ipairs(workspace:GetDescendants()) do
-			if model:IsA("Model") and model:FindFirstChild("Humanoid") and model:FindFirstChild("HumanoidRootPart") then
-				resizeHitbox(model)
-			end
-		end
-		task.wait(checkInterval)
-	end
+-- Button Click Action
+Button.MouseButton1Click:Connect(function()
+	resizeOthers()
 end)
