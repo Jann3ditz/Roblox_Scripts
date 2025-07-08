@@ -9,7 +9,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local tpSound = Instance.new("Sound")
 tpSound.SoundId = "rbxassetid://9118823105"
-tpSound.Volume = 99
+tpSound.Volume = 1000
 tpSound.Parent = screenGui
 
 local teleportPositions = {
@@ -30,7 +30,16 @@ local groupedButtons = {
 		"Garden", "Seed Shop", "Sell", "Prehistoric Quest", "Prehistoric Exchange",
 		"Prehistoric Crafting", "Gear Shop", "Pet Shop", "Crafting Area", "Cosmetic Shop"
 	},
-	["Access Shops"] = { "🗿Travelling Merchant Shop🗿" },
+	["Access Shops"] = {
+		"🗿Travelling Merchant Shop🗿",
+		"🛒Gear Shop",
+		"🌱Seed Shop",
+		"🎨Cosmetic Shop"
+	},
+	["Quests"] = {
+		"🦖Dino Quests",
+		"📅Daily Quests"
+	}
 }
 
 local menuFrame = Instance.new("Frame")
@@ -115,6 +124,21 @@ local function showCategory(category)
 					merchantGui.Enabled = newState
 					merchantGui.Visible = newState
 				end
+			elseif name == "🛒Gear Shop" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("Gear_Shop")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "🌱Seed Shop" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("Seed_Shop")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "🎨Cosmetic Shop" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("CosmeticShop_UI")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "🦖Dino Quests" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("DinoQuests_UI")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "📅Daily Quests" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("DailyQuests_UI")
+				if gui then gui.Enabled = not gui.Enabled end
 			elseif teleportPositions[name] then
 				tpSound:Play()
 				character:MoveTo(teleportPositions[name])
