@@ -1,20 +1,17 @@
 local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
--- GUI Setup
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "TPMenu"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Sound
 local tpSound = Instance.new("Sound")
 tpSound.SoundId = "rbxassetid://9118823105"
-tpSound.Volume = 1
+tpSound.Volume = 99
 tpSound.Parent = screenGui
 
--- Teleport positions
 local teleportPositions = {
 	["Garden"] = Vector3.new(33, 3, -65),
 	["Seed Shop"] = Vector3.new(87, 3, -27),
@@ -28,13 +25,14 @@ local teleportPositions = {
 	["Cosmetic Shop"] = Vector3.new(-287, 3, -25),
 }
 
--- Grouped buttons
 local groupedButtons = {
-	["Teleport"] = { "Garden", "Seed Shop", "Sell", "Prehistoric Quest", "Prehistoric Exchange", "Prehistoric Crafting", "Gear Shop", "Pet Shop", "Crafting Area", "Cosmetic Shop" },
-	["Access Shops"] = { "Open Traveling Merchant" },
+	["Teleport"] = {
+		"Garden", "Seed Shop", "Sell", "Prehistoric Quest", "Prehistoric Exchange",
+		"Prehistoric Crafting", "Gear Shop", "Pet Shop", "Crafting Area", "Cosmetic Shop"
+	},
+	["Access Shops"] = { "🗿Travelling Merchant Shop🗿" },
 }
 
--- Main Menu Frame
 local menuFrame = Instance.new("Frame")
 menuFrame.Size = UDim2.new(0, 360, 0, 280)
 menuFrame.Position = UDim2.new(0.5, -180, 0.5, -140)
@@ -45,7 +43,6 @@ menuFrame.Draggable = true
 menuFrame.Visible = false
 menuFrame.Parent = screenGui
 
--- Title
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 40)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -56,7 +53,6 @@ title.TextScaled = true
 title.BorderSizePixel = 0
 title.Parent = menuFrame
 
--- Left Sidebar (Categories)
 local categoryFrame = Instance.new("Frame")
 categoryFrame.Size = UDim2.new(0, 100, 1, -80)
 categoryFrame.Position = UDim2.new(0, 0, 0, 40)
@@ -69,7 +65,6 @@ catLayout.SortOrder = Enum.SortOrder.LayoutOrder
 catLayout.Padding = UDim.new(0, 5)
 catLayout.Parent = categoryFrame
 
--- Right Panel (Dynamic Content)
 local contentFrame = Instance.new("ScrollingFrame")
 contentFrame.Size = UDim2.new(1, -100, 1, -80)
 contentFrame.Position = UDim2.new(0, 100, 0, 40)
@@ -84,7 +79,6 @@ contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 contentLayout.Padding = UDim.new(0, 4)
 contentLayout.Parent = contentFrame
 
--- Credit
 local credit = Instance.new("TextLabel")
 credit.Size = UDim2.new(1, 0, 0, 40)
 credit.Position = UDim2.new(0, 0, 1, -40)
@@ -95,7 +89,6 @@ credit.Font = Enum.Font.GothamBold
 credit.TextScaled = true
 credit.Parent = menuFrame
 
--- Function to switch category
 local function showCategory(category)
 	for _, child in ipairs(contentFrame:GetChildren()) do
 		if child:IsA("TextButton") then
@@ -115,11 +108,12 @@ local function showCategory(category)
 		btn.Parent = contentFrame
 
 		btn.MouseButton1Click:Connect(function()
-			if name == "Open Traveling Merchant" then
+			if name == "🗿Travelling Merchant Shop🗿" then
 				local merchantGui = player:WaitForChild("PlayerGui"):FindFirstChild("TravelingMerchantShop_UI")
 				if merchantGui then
-					merchantGui.Enabled = true
-					merchantGui.Visible = true
+					local newState = not merchantGui.Enabled
+					merchantGui.Enabled = newState
+					merchantGui.Visible = newState
 				end
 			elseif teleportPositions[name] then
 				tpSound:Play()
@@ -131,7 +125,6 @@ local function showCategory(category)
 	contentFrame.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
 end
 
--- Create category tabs
 for categoryName, _ in pairs(groupedButtons) do
 	local catBtn = Instance.new("TextButton")
 	catBtn.Size = UDim2.new(1, -10, 0, 30)
@@ -148,10 +141,9 @@ for categoryName, _ in pairs(groupedButtons) do
 	end)
 end
 
--- ⚡ Draggable Logo
 local logoDrag = Instance.new("Frame")
 logoDrag.Size = UDim2.new(0, 60, 0, 60)
-logoDrag.Position = UDim2.new(0, 20, 0, 20)
+logoDrag.Position = UDim2.new(0.5, -30, 0.1, 0)
 logoDrag.BackgroundTransparency = 1
 logoDrag.Active = true
 logoDrag.Draggable = true
@@ -171,5 +163,4 @@ logoBtn.MouseButton1Click:Connect(function()
 	menuFrame.Visible = not menuFrame.Visible
 end)
 
--- Show default category on load
 showCategory("Teleport")
