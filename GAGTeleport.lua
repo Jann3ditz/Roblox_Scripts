@@ -1,24 +1,18 @@
--- Grow A Garden GUI Menu with Category Tabs
--- Author: Jann + ChatGPT Combo 💪⚡
-
-local player = game.Players.LocalPlayer
+local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
--- GUI Setup
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "TPMenu"
 screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Sound
 local tpSound = Instance.new("Sound")
 tpSound.SoundId = "rbxassetid://9118823105"
 tpSound.Volume = 1
 tpSound.Parent = screenGui
 
--- Teleport positions
 local teleportPositions = {
-	["Garden"] = Vector3.new(33, 3, -65),
 	["Seed Shop"] = Vector3.new(87, 3, -27),
 	["Sell"] = Vector3.new(87, 3, 0),
 	["Prehistoric Quest"] = Vector3.new(-92, 4, -12),
@@ -30,13 +24,23 @@ local teleportPositions = {
 	["Cosmetic Shop"] = Vector3.new(-287, 3, -25),
 }
 
--- Grouped buttons
 local groupedButtons = {
-	["Teleport"] = { "Garden", "Seed Shop", "Sell", "Prehistoric Quest", "Prehistoric Exchange", "Prehistoric Crafting", "Gear Shop", "Pet Shop", "Crafting Area", "Cosmetic Shop" },
-	["Access Shops"] = { "Open Traveling Merchant" },
+	["Teleport"] = {
+		"Garden", "Seed Shop", "Sell", "Prehistoric Quest", "Prehistoric Exchange",
+		"Prehistoric Crafting", "Gear Shop", "Pet Shop", "Crafting Area", "Cosmetic Shop"
+	},
+	["Access Shops"] = {
+		"🗿Travelling Merchant Shop🗿",
+		"🛒Gear Shop",
+		"🌱Seed Shop",
+		"🎨Cosmetic Shop"
+	},
+	["Quests"] = {
+		"🦖Dino Quests",
+		"📅Daily Quests"
+	}
 }
 
--- Main Menu Frame
 local menuFrame = Instance.new("Frame")
 menuFrame.Size = UDim2.new(0, 360, 0, 280)
 menuFrame.Position = UDim2.new(0.5, -180, 0.5, -140)
@@ -47,18 +51,33 @@ menuFrame.Draggable = true
 menuFrame.Visible = false
 menuFrame.Parent = screenGui
 
--- Title
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 40)
+title.Size = UDim2.new(1, -40, 0, 40)
+title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 title.Text = "🌀 Teleport Menu"
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
 title.BorderSizePixel = 0
+title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = menuFrame
 
--- Left Sidebar (Categories)
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 40, 0, 40)
+closeBtn.Position = UDim2.new(1, -40, 0, 0)
+closeBtn.Text = "✖"
+closeBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextScaled = true
+closeBtn.BorderSizePixel = 0
+closeBtn.Parent = menuFrame
+
+closeBtn.MouseButton1Click:Connect(function()
+	menuFrame.Visible = false
+end)
+
 local categoryFrame = Instance.new("Frame")
 categoryFrame.Size = UDim2.new(0, 100, 1, -80)
 categoryFrame.Position = UDim2.new(0, 0, 0, 40)
@@ -71,7 +90,6 @@ catLayout.SortOrder = Enum.SortOrder.LayoutOrder
 catLayout.Padding = UDim.new(0, 5)
 catLayout.Parent = categoryFrame
 
--- Right Panel (Dynamic Content)
 local contentFrame = Instance.new("ScrollingFrame")
 contentFrame.Size = UDim2.new(1, -100, 1, -80)
 contentFrame.Position = UDim2.new(0, 100, 0, 40)
@@ -81,12 +99,12 @@ contentFrame.ScrollBarThickness = 6
 contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 contentFrame.Parent = menuFrame
 
-local contentLayout = Instance.new("UIListLayout")
+local contentLayout = Instance.new("UIGridLayout")
 contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-contentLayout.Padding = UDim.new(0, 4)
+contentLayout.CellSize = UDim2.new(0.48, 0, 0, 28)
+contentLayout.CellPadding = UDim2.new(0.02, 0, 0, 4)
 contentLayout.Parent = contentFrame
 
--- Credit
 local credit = Instance.new("TextLabel")
 credit.Size = UDim2.new(1, 0, 0, 40)
 credit.Position = UDim2.new(0, 0, 1, -40)
@@ -97,7 +115,6 @@ credit.Font = Enum.Font.GothamBold
 credit.TextScaled = true
 credit.Parent = menuFrame
 
--- Function to switch category
 local function showCategory(category)
 	for _, child in ipairs(contentFrame:GetChildren()) do
 		if child:IsA("TextButton") then
@@ -108,7 +125,7 @@ local function showCategory(category)
 	for _, name in ipairs(groupedButtons[category]) do
 		local btn = Instance.new("TextButton")
 		btn.Text = name
-		btn.Size = UDim2.new(1, -10, 0, 28)
+		btn.Size = UDim2.new(0.48, 0, 0, 28)
 		btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 		btn.TextColor3 = Color3.new(1, 1, 1)
 		btn.Font = Enum.Font.GothamBold
@@ -117,11 +134,36 @@ local function showCategory(category)
 		btn.Parent = contentFrame
 
 		btn.MouseButton1Click:Connect(function()
-			if name == "Open Traveling Merchant" then
+			if name == "🗿Travelling Merchant Shop🗿" then
 				local merchantGui = player:WaitForChild("PlayerGui"):FindFirstChild("TravelingMerchantShop_UI")
 				if merchantGui then
-					merchantGui.Enabled = true
-					merchantGui.Visible = true
+					local newState = not merchantGui.Enabled
+					merchantGui.Enabled = newState
+					merchantGui.Visible = newState
+				end
+			elseif name == "🛒Gear Shop" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("Gear_Shop")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "🌱Seed Shop" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("Seed_Shop")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "🎨Cosmetic Shop" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("CosmeticShop_UI")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "🦖Dino Quests" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("DinoQuests_UI")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "📅Daily Quests" then
+				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("DailyQuests_UI")
+				if gui then gui.Enabled = not gui.Enabled end
+			elseif name == "Garden" then
+				local getFarm = require(game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("GetFarm"))
+				local data = getFarm(player)
+				if data and data.Spawn_Point then
+					tpSound:Play()
+					character:PivotTo(data.Spawn_Point.CFrame)
+				else
+					warn("No garden found!")
 				end
 			elseif teleportPositions[name] then
 				tpSound:Play()
@@ -133,7 +175,6 @@ local function showCategory(category)
 	contentFrame.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
 end
 
--- Create category tabs
 for categoryName, _ in pairs(groupedButtons) do
 	local catBtn = Instance.new("TextButton")
 	catBtn.Size = UDim2.new(1, -10, 0, 30)
@@ -150,28 +191,20 @@ for categoryName, _ in pairs(groupedButtons) do
 	end)
 end
 
--- ⚡ Jann logo (draggable)
-local logoDrag = Instance.new("Frame")
+local logoDrag = Instance.new("TextButton")
 logoDrag.Size = UDim2.new(0, 60, 0, 60)
-logoDrag.Position = UDim2.new(0, 20, 0, 20)
+logoDrag.Position = UDim2.new(0.5, -30, 0.1, 0)
 logoDrag.BackgroundTransparency = 1
+logoDrag.Text = "⚡Jann"
+logoDrag.TextColor3 = Color3.fromRGB(255, 255, 0)
+logoDrag.Font = Enum.Font.GothamBold
+logoDrag.TextScaled = true
 logoDrag.Active = true
 logoDrag.Draggable = true
 logoDrag.Parent = screenGui
 
-local logoBtn = Instance.new("TextButton")
-logoBtn.Size = UDim2.new(1, 0, 1, 0)
-logoBtn.Position = UDim2.new(0, 0, 0, 0)
-logoBtn.BackgroundTransparency = 1
-logoBtn.Text = "⚡Jann"
-logoBtn.TextColor3 = Color3.fromRGB(255, 255, 0)
-logoBtn.Font = Enum.Font.GothamBold
-logoBtn.TextScaled = true
-logoBtn.Parent = logoDrag
-
-logoBtn.MouseButton1Click:Connect(function()
+logoDrag.MouseButton1Click:Connect(function()
 	menuFrame.Visible = not menuFrame.Visible
 end)
 
--- Show default category on start
 showCategory("Teleport")
