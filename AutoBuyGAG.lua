@@ -144,11 +144,22 @@ local function createGlobalToggle(name, pos, isSeed)
 	buyAllBtn.TextColor3 = Color3.new(1, 1, 1)
 	buyAllBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
 
+	local loopFlag = false
 	buyAllBtn.MouseButton1Click:Connect(function()
-		local list = isSeed and seedItems or gearItems
-		local event = isSeed and seedBuy or gearBuy
-		for _, item in ipairs(list) do
-			event:FireServer(item)
+		loopFlag = not loopFlag
+		buyAllBtn.Text = (loopFlag and "Looping " or "Buy All ") .. (isSeed and "Seeds" or "Gear")
+	end)
+
+	task.spawn(function()
+		while true do
+			task.wait(3)
+			if loopFlag then
+				local list = isSeed and seedItems or gearItems
+				local event = isSeed and seedBuy or gearBuy
+				for _, item in ipairs(list) do
+					event:FireServer(item)
+				end
+			end
 		end
 	end)
 
