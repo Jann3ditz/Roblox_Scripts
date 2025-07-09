@@ -1,8 +1,7 @@
--- ⚡ Auto Buy + Player Speed TextBox GUI (with Apply Toggle)
+-- ⚡ Auto Buy + Player Speed + Quest GUI
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 local gearBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyGearStock")
@@ -26,7 +25,7 @@ logo.Font = Enum.Font.FredokaOne
 logo.TextColor3 = Color3.new(1, 1, 1)
 logo.TextSize = 20
 
--- Main Frame (container)
+-- Main Frame
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.new(0, 440, 0, 300)
 main.Position = UDim2.new(0.5, -220, 0.5, -150)
@@ -35,7 +34,7 @@ main.Visible = false
 main.Active = true
 main.Draggable = true
 
--- Tab Buttons
+-- Tabs
 local autoBuyTab = Instance.new("TextButton", main)
 autoBuyTab.Size = UDim2.new(0, 100, 0, 30)
 autoBuyTab.Position = UDim2.new(0, 10, 0, 10)
@@ -60,7 +59,7 @@ questTab.Font = Enum.Font.GothamBold
 questTab.TextColor3 = Color3.new(1, 1, 1)
 questTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
--- Content Frames
+-- Frames
 local autoBuyFrame = Instance.new("Frame", main)
 autoBuyFrame.Size = UDim2.new(1, -20, 1, -50)
 autoBuyFrame.Position = UDim2.new(0, 10, 0, 50)
@@ -79,7 +78,8 @@ questFrame.Position = autoBuyFrame.Position
 questFrame.BackgroundColor3 = Color3.fromRGB(30, 35, 40)
 questFrame.Visible = false
 
--- Toggle Tabs
+-- Tab Toggle
+local currentTab = "auto"
 local function showTab(tab)
 	autoBuyFrame.Visible = (tab == "auto")
 	playerFrame.Visible = (tab == "player")
@@ -91,17 +91,30 @@ end
 
 logo.MouseButton1Click:Connect(function()
 	main.Visible = not main.Visible
+	if main.Visible then
+		showTab(currentTab)
+	end
 end)
 
-autoBuyTab.MouseButton1Click:Connect(function() showTab("auto") end)
-playerTab.MouseButton1Click:Connect(function() showTab("player") end)
-questTab.MouseButton1Click:Connect(function() showTab("quest") end)
+autoBuyTab.MouseButton1Click:Connect(function()
+	currentTab = "auto"
+	showTab("auto")
+end)
 
--- Quest Frame Buttons
-local playerGui = player:WaitForChild("PlayerGui")
-local dinoUI = playerGui:WaitForChild("DinoQuests_UI")
-local dailyUI = playerGui:WaitForChild("DailyQuests_UI")
-local merchantUI = playerGui:WaitForChild("TravelingMerchantShop_UI")
+playerTab.MouseButton1Click:Connect(function()
+	currentTab = "player"
+	showTab("player")
+end)
+
+questTab.MouseButton1Click:Connect(function()
+	currentTab = "quest"
+	showTab("quest")
+end)
+
+-- Quest Buttons
+local dinoUI = player.PlayerGui:FindFirstChild("DinoQuests_UI")
+local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
+local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
 
 local function createQuestButton(text, order, targetUI)
 	local btn = Instance.new("TextButton", questFrame)
@@ -112,9 +125,10 @@ local function createQuestButton(text, order, targetUI)
 	btn.TextSize = 14
 	btn.TextColor3 = Color3.new(1,1,1)
 	btn.BackgroundColor3 = Color3.fromRGB(60, 100, 120)
+
 	btn.MouseButton1Click:Connect(function()
 		if targetUI then
-			targetUI.Enabled = true
+			targetUI.Enabled = not targetUI.Enabled
 		end
 	end)
 end
