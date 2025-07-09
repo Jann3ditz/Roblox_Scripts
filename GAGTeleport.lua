@@ -1,3 +1,6 @@
+-- ✅ Updated Teleport Menu with "Farm" Tab containing integrated AutoBuy Seeds + Gear
+-- Reuses existing contentFrame (right side) from Teleport GUI to show the AutoBuy UI
+
 local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
@@ -38,173 +41,126 @@ local groupedButtons = {
 	["Quests"] = {
 		"🦖Dino Quests",
 		"📅Daily Quests"
-	}
+	},
+	["Farm"] = {} -- Placeholder tab for AutoBuy
 }
 
-local menuFrame = Instance.new("Frame")
-menuFrame.Size = UDim2.new(0, 360, 0, 280)
-menuFrame.Position = UDim2.new(0.5, -180, 0.5, -140)
-menuFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-menuFrame.BorderSizePixel = 0
-menuFrame.Active = true
-menuFrame.Draggable = true
-menuFrame.Visible = false
-menuFrame.Parent = screenGui
+local gearBuy = game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuyGearStock")
+local seedBuy = game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock")
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -40, 0, 40)
-title.Position = UDim2.new(0, 0, 0, 0)
-title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-title.Text = "🌀 Teleport Menu"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Font = Enum.Font.GothamBold
-title.TextScaled = true
-title.BorderSizePixel = 0
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = menuFrame
+local autoBuySeeds = false
+local autoBuyGear = false
+local selectedSeeds = {}
+local selectedGears = {}
 
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 40, 0, 40)
-closeBtn.Position = UDim2.new(1, -40, 0, 0)
-closeBtn.Text = "✖"
-closeBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-closeBtn.TextColor3 = Color3.new(1, 1, 1)
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextScaled = true
-closeBtn.BorderSizePixel = 0
-closeBtn.Parent = menuFrame
+local seedItems = {
+	"Carrot", "Strawberry", "Blueberry", "Orange Tulip", "Tomato", "Daffodil",
+	"Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus",
+	"Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao",
+	"Beanstalk", "Sugar Apple", "Burning Bud"
+}
 
-closeBtn.MouseButton1Click:Connect(function()
-	menuFrame.Visible = false
-end)
+local gearItems = {
+	"Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler",
+	"Advance Sprinkler", "Godly Sprinkler", "Magnifying Glass", "Master Sprinkler",
+	"Cleaning Spray", "Favorite Tool", "Friendship Pot"
+}
 
-local categoryFrame = Instance.new("Frame")
-categoryFrame.Size = UDim2.new(0, 100, 1, -80)
-categoryFrame.Position = UDim2.new(0, 0, 0, 40)
-categoryFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-categoryFrame.BorderSizePixel = 0
-categoryFrame.Parent = menuFrame
-
-local catLayout = Instance.new("UIListLayout")
-catLayout.SortOrder = Enum.SortOrder.LayoutOrder
-catLayout.Padding = UDim.new(0, 5)
-catLayout.Parent = categoryFrame
-
-local contentFrame = Instance.new("ScrollingFrame")
-contentFrame.Size = UDim2.new(1, -100, 1, -80)
-contentFrame.Position = UDim2.new(0, 100, 0, 40)
-contentFrame.BackgroundTransparency = 1
-contentFrame.BorderSizePixel = 0
-contentFrame.ScrollBarThickness = 6
-contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-contentFrame.Parent = menuFrame
-
-local contentLayout = Instance.new("UIGridLayout")
-contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-contentLayout.CellSize = UDim2.new(0.48, 0, 0, 28)
-contentLayout.CellPadding = UDim2.new(0.02, 0, 0, 4)
-contentLayout.Parent = contentFrame
-
-local credit = Instance.new("TextLabel")
-credit.Size = UDim2.new(1, 0, 0, 40)
-credit.Position = UDim2.new(0, 0, 1, -40)
-credit.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-credit.Text = "👤 Credits to JannPlays"
-credit.TextColor3 = Color3.new(1, 1, 1)
-credit.Font = Enum.Font.GothamBold
-credit.TextScaled = true
-credit.Parent = menuFrame
-
-local function showCategory(category)
+local function renderFarmAutoBuy()
 	for _, child in ipairs(contentFrame:GetChildren()) do
-		if child:IsA("TextButton") then
+		if child:IsA("GuiObject") then
 			child:Destroy()
 		end
 	end
 
-	for _, name in ipairs(groupedButtons[category]) do
+	local function createButton(name, isSeed)
 		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(1, -10, 0, 26)
 		btn.Text = name
-		btn.Size = UDim2.new(0.48, 0, 0, 28)
-		btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+		btn.Font = Enum.Font.Gotham
+		btn.TextSize = 12
 		btn.TextColor3 = Color3.new(1, 1, 1)
-		btn.Font = Enum.Font.GothamBold
-		btn.TextScaled = true
+		btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 		btn.BorderSizePixel = 0
-		btn.Parent = contentFrame
 
+		local selected = false
 		btn.MouseButton1Click:Connect(function()
-			if name == "🗿Travelling Merchant Shop🗿" then
-				local merchantGui = player:WaitForChild("PlayerGui"):FindFirstChild("TravelingMerchantShop_UI")
-				if merchantGui then
-					local newState = not merchantGui.Enabled
-					merchantGui.Enabled = newState
-					merchantGui.Visible = newState
+			selected = not selected
+			btn.BackgroundColor3 = selected and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
+			local list = isSeed and selectedSeeds or selectedGears
+			if selected then
+				table.insert(list, name)
+			else
+				for i, v in ipairs(list) do
+					if v == name then table.remove(list, i) break end
 				end
-			elseif name == "🛒Gear Shop" then
-				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("Gear_Shop")
-				if gui then gui.Enabled = not gui.Enabled end
-			elseif name == "🌱Seed Shop" then
-				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("Seed_Shop")
-				if gui then gui.Enabled = not gui.Enabled end
-			elseif name == "🎨Cosmetic Shop" then
-				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("CosmeticShop_UI")
-				if gui then gui.Enabled = not gui.Enabled end
-			elseif name == "🦖Dino Quests" then
-				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("DinoQuests_UI")
-				if gui then gui.Enabled = not gui.Enabled end
-			elseif name == "📅Daily Quests" then
-				local gui = player:WaitForChild("PlayerGui"):FindFirstChild("DailyQuests_UI")
-				if gui then gui.Enabled = not gui.Enabled end
-			elseif name == "Garden" then
-				local getFarm = require(game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("GetFarm"))
-				local data = getFarm(player)
-				if data and data.Spawn_Point then
-					tpSound:Play()
-					character:PivotTo(data.Spawn_Point.CFrame)
-				else
-					warn("No garden found!")
-				end
-			elseif teleportPositions[name] then
-				tpSound:Play()
-				character:MoveTo(teleportPositions[name])
+			end
+		end)
+
+		btn.Parent = contentFrame
+	end
+
+	local function createToggle(name, isSeed)
+		local toggle = Instance.new("TextButton")
+		toggle.Size = UDim2.new(1, -10, 0, 28)
+		toggle.Text = name .. ": OFF"
+		toggle.Font = Enum.Font.GothamBold
+		toggle.TextSize = 13
+		toggle.TextColor3 = Color3.new(1, 1, 1)
+		toggle.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+		toggle.BorderSizePixel = 0
+		toggle.Parent = contentFrame
+
+		toggle.MouseButton1Click:Connect(function()
+			if isSeed then
+				autoBuySeeds = not autoBuySeeds
+				toggle.Text = name .. ": " .. (autoBuySeeds and "ON" or "OFF")
+				toggle.BackgroundColor3 = autoBuySeeds and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(150, 0, 0)
+			else
+				autoBuyGear = not autoBuyGear
+				toggle.Text = name .. ": " .. (autoBuyGear and "ON" or "OFF")
+				toggle.BackgroundColor3 = autoBuyGear and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(150, 0, 0)
 			end
 		end)
 	end
 
+	for _, seed in ipairs(seedItems) do
+		createButton(seed, true)
+	end
+
+	createToggle("Auto Buy Seeds", true)
+
+	for _, gear in ipairs(gearItems) do
+		createButton(gear, false)
+	end
+
+	createToggle("Auto Buy Gear", false)
+
 	contentFrame.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
 end
 
-for categoryName, _ in pairs(groupedButtons) do
-	local catBtn = Instance.new("TextButton")
-	catBtn.Size = UDim2.new(1, -10, 0, 30)
-	catBtn.Text = categoryName
-	catBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	catBtn.TextColor3 = Color3.new(1, 1, 1)
-	catBtn.Font = Enum.Font.GothamBold
-	catBtn.TextScaled = true
-	catBtn.BorderSizePixel = 0
-	catBtn.Parent = categoryFrame
-
-	catBtn.MouseButton1Click:Connect(function()
-		showCategory(categoryName)
-	end)
-end
-
-local logoDrag = Instance.new("TextButton")
-logoDrag.Size = UDim2.new(0, 60, 0, 60)
-logoDrag.Position = UDim2.new(0.5, -30, 0.1, 0)
-logoDrag.BackgroundTransparency = 1
-logoDrag.Text = "⚡Jann"
-logoDrag.TextColor3 = Color3.fromRGB(255, 255, 0)
-logoDrag.Font = Enum.Font.GothamBold
-logoDrag.TextScaled = true
-logoDrag.Active = true
-logoDrag.Draggable = true
-logoDrag.Parent = screenGui
-
-logoDrag.MouseButton1Click:Connect(function()
-	menuFrame.Visible = not menuFrame.Visible
+task.spawn(function()
+	while true do
+		task.wait(1)
+		if autoBuySeeds then
+			for _, seed in ipairs(selectedSeeds) do
+				seedBuy:FireServer(seed)
+			end
+		end
+		if autoBuyGear then
+			for _, gear in ipairs(selectedGears) do
+				gearBuy:FireServer(gear)
+			end
+		end
+	end
 end)
 
-showCategory("Teleport")
+-- 🔽 inside the for loop that builds tab buttons:
+-- catBtn.MouseButton1Click:Connect(function()
+--   if categoryName == "Farm" then
+--     renderFarmAutoBuy()
+--   else
+--     showCategory(categoryName)
+--   end
+-- end)
+-- 👆 add that check to load Farm GUI in contentFrame
