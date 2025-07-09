@@ -1,4 +1,4 @@
--- ⚡Jann Final Auto Buy GUI - ComboBox Edition (Grow a Garden)
+-- ⚡Jann Final Auto Buy GUI - Multi-Select Button Edition (Grow a Garden)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9,8 +9,8 @@ local seedBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuySe
 
 local autoBuySeeds = false
 local autoBuyGear = false
-local selectedSeed = nil
-local selectedGear = nil
+local selectedSeeds = {} -- store multiple seeds
+local selectedGears = {} -- store multiple gears
 
 local seedItems = {
 	"Carrot", "Strawberry", "Blueberry", "Orange Tulip", "Tomato", "Daffodil",
@@ -52,10 +52,10 @@ logo.MouseButton1Click:Connect(function()
 	main.Visible = not main.Visible
 end)
 
--- Section creator
-local function createComboBoxSection(titleText, itemList, position, isSeed)
+-- Section creator for multi-select list
+local function createMultiSelectSection(titleText, itemList, position, isSeed)
 	local frame = Instance.new("ScrollingFrame", main)
-	frame.Size = UDim2.new(0, 200, 1, -20)
+	frame.Size = UDim2.new(0, 200, 1, -40)
 	frame.Position = position
 	frame.CanvasSize = UDim2.new(0, 0, 0, 0)
 	frame.ScrollBarThickness = 6
@@ -71,95 +71,89 @@ local function createComboBoxSection(titleText, itemList, position, isSeed)
 	local title = Instance.new("TextLabel", frame)
 	title.Text = titleText
 	title.Size = UDim2.new(1, 0, 0, 20)
-	title.Position = UDim2.new(0, 0, 0, 0)
 	title.TextColor3 = Color3.new(1, 1, 1)
 	title.BackgroundTransparency = 1
 	title.Font = Enum.Font.GothamBold
 	title.TextSize = 14
-	title.LayoutOrder = 0
 
-	local combo = Instance.new("TextButton", frame)
-	combo.Size = UDim2.new(1, -10, 0, 24)
-	combo.Position = UDim2.new(0, 5, 0, 0)
-	combo.Text = "Select Item"
-	combo.TextSize = 12
-	combo.Font = Enum.Font.Gotham
-	combo.TextColor3 = Color3.new(1, 1, 1)
-	combo.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-	combo.LayoutOrder = 1
+	for _, itemName in ipairs(itemList) do
+		local button = Instance.new("TextButton", frame)
+		button.Size = UDim2.new(1, -10, 0, 24)
+		button.Position = UDim2.new(0, 5, 0, 0)
+		button.Text = itemName
+		button.Font = Enum.Font.Gotham
+		button.TextSize = 12
+		button.TextColor3 = Color3.new(1, 1, 1)
+		button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+		button.BorderSizePixel = 0
 
-	local dropdown = Instance.new("Frame", frame)
-	dropdown.Size = UDim2.new(1, -10, 0, math.min(#itemList, 5) * 20)
-	dropdown.Position = UDim2.new(0, 5, 0, 0)
-	dropdown.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
-	dropdown.Visible = false
-	dropdown.LayoutOrder = 2
-
-	local dropLayout = Instance.new("UIListLayout", dropdown)
-	dropLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	dropLayout.Padding = UDim.new(0, 2)
-
-	for i, itemName in ipairs(itemList) do
-		local item = Instance.new("TextButton", dropdown)
-		item.Size = UDim2.new(1, 0, 0, 20)
-		item.Text = itemName
-		item.Font = Enum.Font.Gotham
-		item.TextSize = 11
-		item.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-		item.TextColor3 = Color3.new(1, 1, 1)
-		item.LayoutOrder = i
-		item.MouseButton1Click:Connect(function()
-			combo.Text = itemName
-			dropdown.Visible = false
+		local selected = false
+		button.MouseButton1Click:Connect(function()
+			selected = not selected
+			button.BackgroundColor3 = selected and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(70, 70, 70)
 			if isSeed then
-				selectedSeed = itemName
+				if selected then
+					table.insert(selectedSeeds, itemName)
+				else
+					for i, v in ipairs(selectedSeeds) do
+						if v == itemName then table.remove(selectedSeeds, i) break end
+					end
+				end
 			else
-				selectedGear = itemName
+				if selected then
+					table.insert(selectedGears, itemName)
+				else
+					for i, v in ipairs(selectedGears) do
+						if v == itemName then table.remove(selectedGears, i) break end
+					end
+				end
 			end
 		end)
 	end
+end
 
-	combo.MouseButton1Click:Connect(function()
-		dropdown.Visible = not dropdown.Visible
-	end)
-	dropdown.Parent = frame
+createMultiSelectSection("Seed Shop", seedItems, UDim2.new(0, 10, 0, 10), true)
+createMultiSelectSection("Gear Shop", gearItems, UDim2.new(0, 230, 0, 10), false)
 
-	-- Auto Buy Toggle
-	local toggle = Instance.new("TextButton", frame)
-	toggle.Size = UDim2.new(1, -10, 0, 26)
-	toggle.Text = "Auto Buy: OFF"
+-- Global toggles in MainFrame
+local function createGlobalToggle(name, pos, isSeed)
+	local toggle = Instance.new("TextButton", main)
+	toggle.Size = UDim2.new(0, 200, 0, 26)
+	toggle.Position = pos
+	toggle.Text = name .. ": OFF"
 	toggle.Font = Enum.Font.GothamBold
 	toggle.TextSize = 13
 	toggle.TextColor3 = Color3.new(1, 1, 1)
 	toggle.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-	toggle.LayoutOrder = 999
-
 	toggle.MouseButton1Click:Connect(function()
 		if isSeed then
 			autoBuySeeds = not autoBuySeeds
-			toggle.Text = autoBuySeeds and "Auto Buy: ON" or "Auto Buy: OFF"
+			toggle.Text = name .. ": " .. (autoBuySeeds and "ON" or "OFF")
 			toggle.BackgroundColor3 = autoBuySeeds and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(150, 0, 0)
 		else
 			autoBuyGear = not autoBuyGear
-			toggle.Text = autoBuyGear and "Auto Buy: ON" or "Auto Buy: OFF"
+			toggle.Text = name .. ": " .. (autoBuyGear and "ON" or "OFF")
 			toggle.BackgroundColor3 = autoBuyGear and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(150, 0, 0)
 		end
 	end)
-	toggle.Parent = frame
 end
 
-createComboBoxSection("Seed Shop", seedItems, UDim2.new(0, 10, 0, 10), true)
-createComboBoxSection("Gear Shop", gearItems, UDim2.new(0, 230, 0, 10), false)
+createGlobalToggle("Auto Buy Seeds", UDim2.new(0, 10, 1, -30), true)
+createGlobalToggle("Auto Buy Gear", UDim2.new(0, 230, 1, -30), false)
 
 -- Loop
 task.spawn(function()
 	while true do
 		task.wait(1)
-		if autoBuySeeds and selectedSeed then
-			seedBuy:FireServer(selectedSeed)
+		if autoBuySeeds then
+			for _, seed in ipairs(selectedSeeds) do
+				seedBuy:FireServer(seed)
+			end
 		end
-		if autoBuyGear and selectedGear then
-			gearBuy:FireServer(selectedGear)
+		if autoBuyGear then
+			for _, gear in ipairs(selectedGears) do
+				gearBuy:FireServer(gear)
+			end
 		end
 	end
 end)
