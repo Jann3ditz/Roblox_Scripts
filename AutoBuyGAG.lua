@@ -1,4 +1,6 @@
--- ⚡ Auto Buy + Player Speed Slider Tabbed GUI
+-- ⚡ Auto Buy + Player Speed TextBox GUI (with Apply Toggle)
+
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -9,7 +11,7 @@ local seedBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuySe
 
 local autoBuySeeds, autoBuyGear = false, false
 local selectedSeeds, selectedGears = {}, {}
-local seedItems = {"Carrot", "Strawberry", "Blueberry", "Orange Tulip", "Tomato", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Sugar Apple", "Burning Bud"}
+local seedItems = {"Strawberry", "Orange Tulip", "Tomato", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Sugar Apple", "Burning Bud"}
 local gearItems = {"Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advance Sprinkler", "Godly Sprinkler", "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Favorite Tool", "Friendship Pot"}
 
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
@@ -20,7 +22,7 @@ local logo = Instance.new("TextButton", gui)
 logo.Size = UDim2.new(0, 120, 0, 30)
 logo.Position = UDim2.new(0, 10, 0, 10)
 logo.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
-logo.Text = "â\xe2\xe2\x9a¡\xe2\x9a\xa1 Jann"
+logo.Text = "⚡ Jann"
 logo.Font = Enum.Font.FredokaOne
 logo.TextColor3 = Color3.new(1, 1, 1)
 logo.TextSize = 20
@@ -66,16 +68,14 @@ playerFrame.Visible = false
 
 -- Toggle Tabs
 local function showTab(tab)
-
-autoBuyFrame.Visible = (tab == "auto")
-playerFrame.Visible = (tab == "player")
-
-autoBuyTab.BackgroundColor3 = tab == "auto" and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
-playerTab.BackgroundColor3 = tab == "player" and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
+	autoBuyFrame.Visible = (tab == "auto")
+	playerFrame.Visible = (tab == "player")
+	autoBuyTab.BackgroundColor3 = tab == "auto" and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
+	playerTab.BackgroundColor3 = tab == "player" and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
 end
 
 logo.MouseButton1Click:Connect(function()
-    main.Visible = not main.Visible
+	main.Visible = not main.Visible
 end)
 
 autoBuyTab.MouseButton1Click:Connect(function() showTab("auto") end)
@@ -151,9 +151,9 @@ end
 createGlobalToggle("Auto Buy Seeds", UDim2.new(0, 0, 1, -30), true)
 createGlobalToggle("Auto Buy Gear", UDim2.new(0.5, 5, 1, -30), false)
 
--- Player Tab: Speed Adjuster
+-- Player Tab: Speed TextBox
 local walkSpeed = player.PlayerGui:GetAttribute("SavedSpeed") or 16
-local minSpeed, maxSpeed = 16, 100
+local minSpeed, maxSpeed = 16, 999
 
 local speedLabel = Instance.new("TextLabel", playerFrame)
 speedLabel.Size = UDim2.new(1, -20, 0, 30)
@@ -164,38 +164,43 @@ speedLabel.BackgroundTransparency = 1
 speedLabel.Font = Enum.Font.GothamBold
 speedLabel.TextSize = 14
 
-local UISlider = Instance.new("Frame", playerFrame)
-UISlider.Size = UDim2.new(1, -20, 0, 40)
-UISlider.Position = UDim2.new(0, 10, 0, 50)
-UISlider.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+local speedInput = Instance.new("TextBox", playerFrame)
+speedInput.Size = UDim2.new(1, -20, 0, 30)
+speedInput.Position = UDim2.new(0, 10, 0, 50)
+speedInput.PlaceholderText = "Enter Speed (" .. minSpeed .. " - " .. maxSpeed .. ")"
+speedInput.Text = tostring(walkSpeed)
+speedInput.ClearTextOnFocus = false
+speedInput.TextColor3 = Color3.new(1, 1, 1)
+speedInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+speedInput.Font = Enum.Font.Gotham
+speedInput.TextSize = 14
 
-local bar = Instance.new("Frame", UISlider)
-bar.Size = UDim2.new(1, 0, 0, 6)
-bar.Position = UDim2.new(0, 0, 0.5, -3)
-bar.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-
-local knob = Instance.new("Frame", bar)
-knob.Size = UDim2.new(0, 10, 0, 20)
-knob.Position = UDim2.new((walkSpeed - minSpeed) / (maxSpeed - minSpeed), 0, 0.5, 0)
-knob.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-knob.BorderSizePixel = 0
-knob.AnchorPoint = Vector2.new(0.5, 0.5)
-
-local dragging = false
-bar.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
-end)
-bar.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
-end)
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local relX = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-		knob.Position = UDim2.new(relX, 0, 0.5, 0)
-		walkSpeed = math.floor(minSpeed + (maxSpeed - minSpeed) * relX)
-		speedLabel.Text = "WalkSpeed: " .. walkSpeed
+speedInput.FocusLost:Connect(function()
+	local val = tonumber(speedInput.Text)
+	if val and val >= minSpeed and val <= maxSpeed then
+		walkSpeed = val
 		player.PlayerGui:SetAttribute("SavedSpeed", walkSpeed)
+		speedLabel.Text = "WalkSpeed: " .. walkSpeed
+	else
+		speedInput.Text = tostring(walkSpeed)
 	end
+end)
+
+local applyToggle = Instance.new("TextButton", playerFrame)
+applyToggle.Size = UDim2.new(0, 140, 0, 30)
+applyToggle.Position = UDim2.new(0.5, -70, 0, 90)
+applyToggle.Text = "Apply Speed: OFF"
+applyToggle.Font = Enum.Font.GothamBold
+applyToggle.TextSize = 14
+applyToggle.TextColor3 = Color3.new(1, 1, 1)
+applyToggle.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+
+local speedApplyOn = false
+
+applyToggle.MouseButton1Click:Connect(function()
+	speedApplyOn = not speedApplyOn
+	applyToggle.Text = "Apply Speed: " .. (speedApplyOn and "ON" or "OFF")
+	applyToggle.BackgroundColor3 = speedApplyOn and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(150, 0, 0)
 end)
 
 -- Runtime loops
@@ -210,9 +215,11 @@ end)
 task.spawn(function()
 	while true do
 		task.wait(3)
-		local character = player.Character or player.CharacterAdded:Wait()
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-		if humanoid then humanoid.WalkSpeed = walkSpeed end
+		if speedApplyOn then
+			local character = player.Character or player.CharacterAdded:Wait()
+			local humanoid = character:FindFirstChildOfClass("Humanoid")
+			if humanoid then humanoid.WalkSpeed = walkSpeed end
+		end
 	end
 end)
 
