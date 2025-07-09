@@ -60,6 +60,13 @@ local function createComboBoxSection(titleText, itemList, position, isSeed)
 	frame.CanvasSize = UDim2.new(0, 0, 0, 0)
 	frame.ScrollBarThickness = 6
 	frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	frame.ScrollingDirection = Enum.ScrollingDirection.Y
+	frame.ClipsDescendants = true
+
+	local layout = Instance.new("UIListLayout", frame)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 4)
 
 	local title = Instance.new("TextLabel", frame)
 	title.Text = titleText
@@ -69,31 +76,38 @@ local function createComboBoxSection(titleText, itemList, position, isSeed)
 	title.BackgroundTransparency = 1
 	title.Font = Enum.Font.GothamBold
 	title.TextSize = 14
+	title.LayoutOrder = 0
 
 	local combo = Instance.new("TextButton", frame)
 	combo.Size = UDim2.new(1, -10, 0, 24)
-	combo.Position = UDim2.new(0, 5, 0, 25)
+	combo.Position = UDim2.new(0, 5, 0, 0)
 	combo.Text = "Select Item"
 	combo.TextSize = 12
 	combo.Font = Enum.Font.Gotham
 	combo.TextColor3 = Color3.new(1, 1, 1)
 	combo.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+	combo.LayoutOrder = 1
 
 	local dropdown = Instance.new("Frame", frame)
-	dropdown.Size = UDim2.new(1, -10, 0, math.min(#itemList, 8) * 20)
-	dropdown.Position = UDim2.new(0, 5, 0, 50)
+	dropdown.Size = UDim2.new(1, -10, 0, math.min(#itemList, 5) * 20)
+	dropdown.Position = UDim2.new(0, 5, 0, 0)
 	dropdown.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
 	dropdown.Visible = false
+	dropdown.LayoutOrder = 2
+
+	local dropLayout = Instance.new("UIListLayout", dropdown)
+	dropLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	dropLayout.Padding = UDim.new(0, 2)
 
 	for i, itemName in ipairs(itemList) do
 		local item = Instance.new("TextButton", dropdown)
 		item.Size = UDim2.new(1, 0, 0, 20)
-		item.Position = UDim2.new(0, 0, 0, (i - 1) * 20)
 		item.Text = itemName
 		item.Font = Enum.Font.Gotham
 		item.TextSize = 11
 		item.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 		item.TextColor3 = Color3.new(1, 1, 1)
+		item.LayoutOrder = i
 		item.MouseButton1Click:Connect(function()
 			combo.Text = itemName
 			dropdown.Visible = false
@@ -108,16 +122,18 @@ local function createComboBoxSection(titleText, itemList, position, isSeed)
 	combo.MouseButton1Click:Connect(function()
 		dropdown.Visible = not dropdown.Visible
 	end)
+	dropdown.Parent = frame
 
 	-- Auto Buy Toggle
 	local toggle = Instance.new("TextButton", frame)
 	toggle.Size = UDim2.new(1, -10, 0, 26)
-	toggle.Position = UDim2.new(0, 5, 0, 60 + dropdown.Size.Y.Offset)
 	toggle.Text = "Auto Buy: OFF"
 	toggle.Font = Enum.Font.GothamBold
 	toggle.TextSize = 13
 	toggle.TextColor3 = Color3.new(1, 1, 1)
 	toggle.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+	toggle.LayoutOrder = 999
+
 	toggle.MouseButton1Click:Connect(function()
 		if isSeed then
 			autoBuySeeds = not autoBuySeeds
@@ -129,8 +145,7 @@ local function createComboBoxSection(titleText, itemList, position, isSeed)
 			toggle.BackgroundColor3 = autoBuyGear and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(150, 0, 0)
 		end
 	end)
-
-	frame.CanvasSize = UDim2.new(0, 0, 0, toggle.Position.Y.Offset + 40)
+	toggle.Parent = frame
 end
 
 createComboBoxSection("Seed Shop", seedItems, UDim2.new(0, 10, 0, 10), true)
