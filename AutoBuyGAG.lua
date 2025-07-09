@@ -1,7 +1,8 @@
--- ⚡ Auto Buy + Player Speed TextBox GUI (with Apply Toggle + Buy All Buttons)
+-- ⚡ Auto Buy + Player Speed TextBox GUI (with Apply Toggle)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 local gearBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyGearStock")
@@ -15,7 +16,7 @@ local gearItems = {"Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler",
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "AutoBuyGUI"
 
--- Logo Button
+-- Open Button
 local logo = Instance.new("TextButton", gui)
 logo.Size = UDim2.new(0, 120, 0, 30)
 logo.Position = UDim2.new(0, 10, 0, 10)
@@ -25,7 +26,7 @@ logo.Font = Enum.Font.FredokaOne
 logo.TextColor3 = Color3.new(1, 1, 1)
 logo.TextSize = 20
 
--- Main Frame
+-- Main Frame (container)
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.new(0, 440, 0, 300)
 main.Position = UDim2.new(0.5, -220, 0.5, -150)
@@ -34,7 +35,7 @@ main.Visible = false
 main.Active = true
 main.Draggable = true
 
--- Tabs
+-- Tab Buttons
 local autoBuyTab = Instance.new("TextButton", main)
 autoBuyTab.Size = UDim2.new(0, 100, 0, 30)
 autoBuyTab.Position = UDim2.new(0, 10, 0, 10)
@@ -51,6 +52,7 @@ playerTab.Font = Enum.Font.GothamBold
 playerTab.TextColor3 = Color3.new(1, 1, 1)
 playerTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
+-- Content Frames
 local autoBuyFrame = Instance.new("Frame", main)
 autoBuyFrame.Size = UDim2.new(1, -20, 1, -50)
 autoBuyFrame.Position = UDim2.new(0, 10, 0, 50)
@@ -63,11 +65,12 @@ playerFrame.Position = autoBuyFrame.Position
 playerFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 playerFrame.Visible = false
 
+-- Toggle Tabs
 local function showTab(tab)
-	autoBuyFrame.Visible = tab == "auto"
-	playerFrame.Visible = tab == "player"
-	autoBuyTab.BackgroundColor3 = tab == "auto" and Color3.fromRGB(70, 70, 70) or Color3.fromRGB(50, 50, 50)
-	playerTab.BackgroundColor3 = tab == "player" and Color3.fromRGB(70, 70, 70) or Color3.fromRGB(50, 50, 50)
+	autoBuyFrame.Visible = (tab == "auto")
+	playerFrame.Visible = (tab == "player")
+	autoBuyTab.BackgroundColor3 = tab == "auto" and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
+	playerTab.BackgroundColor3 = tab == "player" and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
 end
 
 logo.MouseButton1Click:Connect(function()
@@ -77,7 +80,7 @@ end)
 autoBuyTab.MouseButton1Click:Connect(function() showTab("auto") end)
 playerTab.MouseButton1Click:Connect(function() showTab("player") end)
 
--- Seed + Gear Section
+-- Auto Buy UI
 local function createMultiSelectSection(titleText, itemList, parent, isSeed)
 	local frame = Instance.new("ScrollingFrame", parent)
 	frame.Size = UDim2.new(0.5, -15, 1, -50)
@@ -106,6 +109,7 @@ local function createMultiSelectSection(titleText, itemList, parent, isSeed)
 		button.TextSize = 12
 		button.TextColor3 = Color3.new(1, 1, 1)
 		button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+		button.BorderSizePixel = 0
 
 		local selected = false
 		button.MouseButton1Click:Connect(function()
@@ -121,7 +125,6 @@ end
 createMultiSelectSection("Seed Shop", seedItems, autoBuyFrame, true)
 createMultiSelectSection("Gear Shop", gearItems, autoBuyFrame, false)
 
--- Toggles + Buy All
 local function createGlobalToggle(name, pos, isSeed)
 	local toggle = Instance.new("TextButton", autoBuyFrame)
 	toggle.Size = UDim2.new(0.25, -10, 0, 26)
@@ -131,6 +134,24 @@ local function createGlobalToggle(name, pos, isSeed)
 	toggle.TextSize = 13
 	toggle.TextColor3 = Color3.new(1, 1, 1)
 	toggle.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+
+	local buyAllBtn = Instance.new("TextButton", autoBuyFrame)
+	buyAllBtn.Size = UDim2.new(0.25, -10, 0, 26)
+	buyAllBtn.Position = UDim2.new(pos.X.Scale + 0.25, pos.X.Offset + 10, pos.Y.Scale, pos.Y.Offset)
+	buyAllBtn.Text = "Buy All " .. (isSeed and "Seeds" or "Gear")
+	buyAllBtn.Font = Enum.Font.GothamBold
+	buyAllBtn.TextSize = 13
+	buyAllBtn.TextColor3 = Color3.new(1, 1, 1)
+	buyAllBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+
+	buyAllBtn.MouseButton1Click:Connect(function()
+		local list = isSeed and seedItems or gearItems
+		local event = isSeed and seedBuy or gearBuy
+		for _, item in ipairs(list) do
+			event:FireServer(item)
+		end
+	end)
+
 	toggle.MouseButton1Click:Connect(function()
 		if isSeed then
 			autoBuySeeds = not autoBuySeeds
@@ -144,29 +165,10 @@ local function createGlobalToggle(name, pos, isSeed)
 	end)
 end
 
-local function createBuyAllButton(text, pos, items, isSeed)
-	local btn = Instance.new("TextButton", autoBuyFrame)
-	btn.Size = UDim2.new(0.25, -10, 0, 26)
-	btn.Position = pos
-	btn.Text = text
-	btn.Font = Enum.Font.Gotham
-	btn.TextSize = 13
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.BackgroundColor3 = Color3.fromRGB(90, 90, 90)
-	btn.MouseButton1Click:Connect(function()
-		for _, v in ipairs(items) do
-			if isSeed then seedBuy:FireServer(v)
-			else gearBuy:FireServer(v) end
-		end
-	end)
-end
-
 createGlobalToggle("Auto Buy Seeds", UDim2.new(0, 0, 1, -30), true)
-createBuyAllButton("Buy All Seeds", UDim2.new(0.25, 5, 1, -30), seedItems, true)
-createGlobalToggle("Auto Buy Gear", UDim2.new(0.5, 10, 1, -30), false)
-createBuyAllButton("Buy All Gears", UDim2.new(0.75, 15, 1, -30), gearItems, false)
+createGlobalToggle("Auto Buy Gear", UDim2.new(0.5, 5, 1, -30), false)
 
--- Player Speed Tab
+-- Player Tab: Speed TextBox
 local walkSpeed = player.PlayerGui:GetAttribute("SavedSpeed") or 16
 local minSpeed, maxSpeed = 16, 999
 
@@ -211,13 +213,14 @@ applyToggle.TextColor3 = Color3.new(1, 1, 1)
 applyToggle.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 
 local speedApplyOn = false
+
 applyToggle.MouseButton1Click:Connect(function()
 	speedApplyOn = not speedApplyOn
 	applyToggle.Text = "Apply Speed: " .. (speedApplyOn and "ON" or "OFF")
 	applyToggle.BackgroundColor3 = speedApplyOn and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(150, 0, 0)
 end)
 
--- Loops
+-- Runtime loops
 task.spawn(function()
 	while true do
 		task.wait(1)
@@ -237,4 +240,5 @@ task.spawn(function()
 	end
 end)
 
+-- Default: show Auto tab
 showTab("auto")
