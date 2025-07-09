@@ -30,21 +30,31 @@ local gearItems = {
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "AutoBuyGUI"
 
+-- Create the main menu (initially hidden)
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.new(0, 400, 0, 280)
 main.Position = UDim2.new(0, 10, 0.25, 0)
 main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 main.BorderSizePixel = 0
 main.Name = "MainFrame"
+main.Visible = false
+main.Active = true
+main.Draggable = true
 
--- Logo ⚡Jann
-local logo = Instance.new("TextLabel", main)
-logo.Size = UDim2.new(1, 0, 0, 30)
+-- Floating logo button (top-left)
+local logo = Instance.new("TextButton", gui)
+logo.Size = UDim2.new(0, 120, 0, 30)
+logo.Position = UDim2.new(0, 10, 0, 10)
 logo.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
 logo.Text = "⚡ Jann"
 logo.Font = Enum.Font.FredokaOne
 logo.TextColor3 = Color3.new(1, 1, 1)
 logo.TextSize = 20
+
+-- Toggle visibility on logo click
+logo.MouseButton1Click:Connect(function()
+	main.Visible = not main.Visible
+end)
 
 -- Scrollable seed/gear selector
 local function createItemList(titleText, items, xOffset, selectedTable)
