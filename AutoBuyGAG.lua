@@ -1,18 +1,24 @@
--- ⚡ Auto Buy + Player Speed + Quest GUI (Final Integrated v2)
+-- ⚡ Auto Buy + Player Speed + Quest GUI  (Final Integrated v2 - 2025-07-12)
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local player = Players.LocalPlayer
+---------------------------------------------------------------------
+-- services & remotes
+---------------------------------------------------------------------
+local Players            = game:GetService("Players")
+local ReplicatedStorage  = game:GetService("ReplicatedStorage")
+local player             = Players.LocalPlayer
 
 local gearBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyGearStock")
-local seedBuy  = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuySeedStock")
+local seedBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuySeedStock")
 
+---------------------------------------------------------------------
+-- state flags & selections
+---------------------------------------------------------------------
 local autoBuySeeds, autoBuyGear = false, false
-local selectedSeeds, selectedGears = {}, {}
+local selectedSeeds, selectedGears = {}, {}     -- [itemName] = true / false
 
--- ---------------------------------
--- ITEMS
--- ---------------------------------
+---------------------------------------------------------------------
+-- master item lists (used to build the UI)
+---------------------------------------------------------------------
 local seedItems = {
 	"Strawberry","Orange Tulip","Tomato","Daffodil","Watermelon","Pumpkin",
 	"Apple","Bamboo","Coconut","Cactus","Dragon Fruit","Mango",
@@ -24,15 +30,53 @@ local gearItems = {
 	"Basic Sprinkler","Advanced Sprinkler","Godly Sprinkler","Master Sprinkler",
 	"Magnifying Glass","Cleaning Spray",
 	"Favorite Tool","Friendship Pot",
-	-- newly added
-	"Harvest Tool","Tanning Mirror"
+	"Harvest Tool","Tanning Mirror"          -- 🆕 added
 }
--- ^ corrected “Advanced Sprinkler” spelling + added Harvest Tool & Tanning Mirror
 
 ---------------------------------------------------------------------
--- everything below this line is unchanged from your last version
+-- ⚠️  gear-slot map  ⚠️
+-- The server expects a slot index, so keep this table up-to-date
 ---------------------------------------------------------------------
+local gearToSlot = {
+	["Watering Can"]       = 1,
+	["Trowel"]             = 2,
+	["Recall Wrench"]      = 3,
+	["Basic Sprinkler"]    = 4,
+	["Advanced Sprinkler"] = 5,  -- corrected spelling
+	["Godly Sprinkler"]    = 6,
+	["Master Sprinkler"]   = 7,
+	["Magnifying Glass"]   = 8,
+	["Cleaning Spray"]     = 9,
+	["Favorite Tool"]      = 10,
+	["Friendship Pot"]     = 11,
+	["Harvest Tool"]       = 12, -- <-- verify in shop UI
+	["Tanning Mirror"]     = 13  -- <-- verify in shop UI
+}
 
+-- alias for the old shop spelling so either string works
+gearToSlot["Advance Sprinkler"] = gearToSlot["Advanced Sprinkler"]
+
+---------------------------------------------------------------------
+-- safe fire helpers (prevents nil-index crashes)
+---------------------------------------------------------------------
+local function safeFireGear(name)
+	local slot = gearToSlot[name]
+	if slot then
+		gearBuy:FireServer(slot)
+	else
+		warn(("⚡ AutoBuy: No slot mapping for “%s” - skipped"):format(name))
+	end
+end
+
+local function safeFireSeed(name)
+	-- seeds are bought directly by name, so we can just call the remote.
+	-- If the dev later changes a seedId system, wrap it the same way.
+	seedBuy:FireServer(name)
+end
+
+---------------------------------------------------------------------
+-- basic GUI scaffolding (unchanged)
+---------------------------------------------------------------------
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "AutoBuyGUI"
 
@@ -99,5 +143,12 @@ questFrame.Position = autoBuyFrame.Position
 questFrame.BackgroundColor3 = Color3.fromRGB(30, 35, 40)
 questFrame.Visible = false
 
+---------------------------------------------------------------------
 -- (rest of your original code stays exactly the same)
--- …
+-- - createMultiSelectSection()
+-- - toggle handlers
+-- - player speed slider
+-- - quest helper
+-- - main while-true loop:
+--     use safeFireGear() & safeFireSeed() instead of raw FireServer
+---------------------------------------------------------------------
