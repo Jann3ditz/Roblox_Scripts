@@ -1,46 +1,23 @@
+-- ⚡ Auto Buy + Player Speed + Quest GUI (Mobile-Optimized v3)
 
-
----------------------------------------------------------------------
--- services & remotes
----------------------------------------------------------------------
-local Players           = game:GetService("Players")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local player            = Players.LocalPlayer
+local player = Players.LocalPlayer
 
 local gearBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyGearStock")
 local seedBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuySeedStock")
-local eggBuy  = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyPetEgg")
+local petEggBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyPetEgg")
 
----------------------------------------------------------------------
--- data tables & state
----------------------------------------------------------------------
-local autoBuySeeds, autoBuyGear, autoBuyEggs = false, false, false
-local selectedSeeds, selectedGears, selectedEggs = {}, {}, {}
+local autoBuySeeds, autoBuyGear, autoBuyEgg = false, false, false
+local selectedSeed, selectedGear, selectedEgg = nil, nil, nil
 
-local seedItems = {
-    "Strawberry", "Orange Tulip", "Tomato", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo",
-    "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao",
-    "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone Seed"
-}
+local seedItems = {"Strawberry", "Orange Tulip", "Tomato", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone Seed"}
+local gearItems = {"Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler", "Godly Sprinkler", "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Favorite Tool", "Friendship Pot", "Harvest Tool", "Tanning Mirror", "Levelup Lollipop", "Medium Treat", "Medium Toy"}
+local eggItems = {"Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bee Egg", "Bug Egg", "Common Summer Egg", "Rare Summer Egg", "Paradise Egg", "Oasis Egg"}
 
-local gearItems = {
-    "Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler", "Godly Sprinkler",
-    "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Favorite Tool", "Friendship Pot",
-    "Harvest Tool", "Tanning Mirror", "Levelup Lollipop", "Medium Treat", "Medium Toy"
-}
-
-local eggItems = {
-    "Common Egg", "Uncommon Egg", "Rare Egg",
-    "Legendary Egg", "Mythical Egg", "Bug Egg"
-}
-
----------------------------------------------------------------------
--- root GUI containers
----------------------------------------------------------------------
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "AutoBuyGUI"
 
--- Open/close button
 local logo = Instance.new("TextButton", gui)
 logo.Size = UDim2.new(0, 120, 0, 30)
 logo.Position = UDim2.new(0, 10, 0, 10)
@@ -50,18 +27,14 @@ logo.Font = Enum.Font.FredokaOne
 logo.TextColor3 = Color3.new(1, 1, 1)
 logo.TextSize = 20
 
--- Draggable main window
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 440, 0, 300)
-main.Position = UDim2.new(0.5, -220, 0.5, -150)
+main.Size = UDim2.new(0.9, 0, 0.9, 0)
+main.Position = UDim2.new(0.05, 0, 0.05, 0)
 main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 main.Visible = false
-main.Active  = true
+main.Active = true
 main.Draggable = true
 
----------------------------------------------------------------------
--- Tab buttons
----------------------------------------------------------------------
 local autoBuyTab = Instance.new("TextButton", main)
 autoBuyTab.Size = UDim2.new(0, 100, 0, 30)
 autoBuyTab.Position = UDim2.new(0, 10, 0, 10)
@@ -86,165 +59,190 @@ questTab.Font = Enum.Font.GothamBold
 questTab.TextColor3 = Color3.new(1, 1, 1)
 questTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
--- ► NEW Pet tab
-local petTab = Instance.new("TextButton", main)
-petTab.Size = UDim2.new(0, 100, 0, 30)
-petTab.Position = UDim2.new(0, 340, 0, 10)
-petTab.Text = "Pet"
-petTab.Font = Enum.Font.GothamBold
-petTab.TextColor3 = Color3.new(1, 1, 1)
-petTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+local autoBuyFrame = Instance.new("Frame", main)
+autoBuyFrame.Size = UDim2.new(1, -20, 1, -50)
+autoBuyFrame.Position = UDim2.new(0, 10, 0, 50)
+autoBuyFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+autoBuyFrame.Visible = true
 
----------------------------------------------------------------------
--- Content frames
----------------------------------------------------------------------
-local function newContentFrame()
-    local f = Instance.new("Frame", main)
-    f.Size = UDim2.new(1, -20, 1, -50)
-    f.Position = UDim2.new(0, 10, 0, 50)
-    f.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    f.Visible = false
-    return f
-end
+local playerFrame = Instance.new("Frame", main)
+playerFrame.Size = autoBuyFrame.Size
+playerFrame.Position = autoBuyFrame.Position
+playerFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+playerFrame.Visible = false
 
-local autoBuyFrame = newContentFrame(); autoBuyFrame.Visible=true
-local playerFrame  = newContentFrame(); playerFrame.BackgroundColor3 = Color3.fromRGB(35,35,35)
-local questFrame   = newContentFrame(); questFrame.BackgroundColor3   = Color3.fromRGB(30,35,40)
-local petFrame     = newContentFrame(); petFrame.BackgroundColor3     = Color3.fromRGB(35,40,45)
+local questFrame = Instance.new("Frame", main)
+questFrame.Size = autoBuyFrame.Size
+questFrame.Position = autoBuyFrame.Position
+questFrame.BackgroundColor3 = Color3.fromRGB(30, 35, 40)
+questFrame.Visible = false
 
----------------------------------------------------------------------
--- Helper: collapsible multi‑select section (simple version)
----------------------------------------------------------------------
-if not createMultiSelectSection then
-    function createMultiSelectSection(title, list, parent, _) -- startExpanded param unused in this simple impl
-        -- container
-        local container = Instance.new("Frame", parent)
-        container.BackgroundTransparency = 1
-        container.Size = UDim2.new(1, 0, 0, 24 + (#list+1)//2*24)
-
-        -- section title
-        local header = Instance.new("TextLabel", container)
-        header.Size = UDim2.new(1, 0, 0, 22)
-        header.Text = title
-        header.Font = Enum.Font.GothamBold
-        header.TextSize = 16
-        header.TextColor3 = Color3.new(1,1,1)
-        header.BackgroundTransparency = 1
-
-        -- decide which table to toggle
-        local tableRef = selectedSeeds
-        if title:find("Gear") then tableRef = selectedGears elseif title:find("Egg") then tableRef = selectedEggs end
-
-        -- grid of check buttons
-        for i,item in ipairs(list) do
-            local btn = Instance.new("TextButton", container)
-            btn.Size = UDim2.new(0.45, 0, 0, 20)
-            btn.Position = UDim2.new(i%2==1 and 0 or 0.55, 0, 0, 24 + math.floor((i-1)/2)*22)
-            btn.Text = "□ "..item
-            btn.Font = Enum.Font.Gotham
-            btn.TextSize = 14
-            btn.TextColor3 = Color3.new(1,1,1)
-            btn.BackgroundColor3 = Color3.fromRGB(55,55,55)
-            btn.MouseButton1Click:Connect(function()
-                if tableRef[item] then
-                    tableRef[item]=nil; btn.Text = "□ "..item
-                else
-                    tableRef[item]=true; btn.Text = "✓ "..item
-                end
-            end)
-        end
-        return container
-    end
-end
-
----------------------------------------------------------------------
--- Tab switching
----------------------------------------------------------------------
-local currentTab = "auto"
-local function showTab(tab)
-    currentTab = tab
-    autoBuyFrame.Visible = tab=="auto"
-    playerFrame.Visible  = tab=="player"
-    questFrame.Visible   = tab=="quest"
-    petFrame.Visible     = tab=="pet"
-
-    autoBuyTab.BackgroundColor3 = tab=="auto"  and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
-    playerTab.BackgroundColor3  = tab=="player"and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
-    questTab.BackgroundColor3   = tab=="quest" and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
-    petTab.BackgroundColor3     = tab=="pet"   and Color3.fromRGB(70,70,70) or Color3.fromRGB(50,50,50)
-end
-
-logo.MouseButton1Click:Connect(function()
-    main.Visible = not main.Visible
-    if main.Visible then showTab(currentTab) end
-end)
-
-autoBuyTab.MouseButton1Click:Connect(function() showTab("auto") end)
-playerTab.MouseButton1Click:Connect(function() showTab("player") end)
-questTab.MouseButton1Click:Connect(function() showTab("quest") end)
-petTab.MouseButton1Click:Connect(function() showTab("pet") end)
-
----------------------------------------------------------------------
--- Quest shortcuts
----------------------------------------------------------------------
-local dinoUI     = player.PlayerGui:FindFirstChild("DinoQuests_UI")
-local dailyUI    = player.PlayerGui:FindFirstChild("DailyQuests_UI")
+local dinoUI = player.PlayerGui:FindFirstChild("DinoQuests_UI")
+local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
 local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
 
-local function createQuestButton(label, order, target)
+local function createQuestButton(text, order, targetUI)
     local btn = Instance.new("TextButton", questFrame)
-    btn.Size = UDim2.new(0.6, 0, 0, 30)
-    btn.Position = UDim2.new(0.2, 0, 0, 6 + order*36)
-    btn.Text = label
+    btn.Size = UDim2.new(0.6, 0, 0, 32)
+    btn.Position = UDim2.new(0.2, 0, 0, 10 + order * 40)
+    btn.Text = text
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 14
     btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(60,100,120)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 100, 120)
     btn.MouseButton1Click:Connect(function()
-        if target then target.Enabled = not target.Enabled end
+        if targetUI then
+            targetUI.Enabled = not targetUI.Enabled
+        end
     end)
 end
 
-createQuestButton("Dino Quest",            0, dinoUI)
-createQuestButton("Daily Quest",           1, dailyUI)
-createQuestButton("Travelling Merchant",   2, merchantUI)
+createQuestButton("Dino Quest", 0, dinoUI)
+createQuestButton("Daily Quest", 1, dailyUI)
+createQuestButton("Travelling Merchant", 2, merchantUI)
 
----------------------------------------------------------------------
--- (PLACEHOLDER) your existing Seed/Gear Auto‑Buy & Player speed code
--- put back your createMultiSelectSection calls & toggles here if you
--- already had them. They will work unchanged.
----------------------------------------------------------------------
--- example:
--- local seedSection = createMultiSelectSection("Seed Shop", seedItems, autoBuyFrame, true)
--- ... etc.
+local speedToggle = Instance.new("TextButton", playerFrame)
+speedToggle.Size = UDim2.new(0, 200, 0, 30)
+speedToggle.Position = UDim2.new(0, 20, 0, 20)
+speedToggle.Text = "Speed: OFF"
+speedToggle.Font = Enum.Font.GothamBold
+speedToggle.TextSize = 14
+speedToggle.BackgroundColor3 = Color3.fromRGB(80, 60, 90)
+speedToggle.TextColor3 = Color3.new(1, 1, 1)
 
----------------------------------------------------------------------
--- PET frame: egg multi‑select + toggle + loop
----------------------------------------------------------------------
-local eggSection = createMultiSelectSection("Egg Shop", eggItems, petFrame, false)
+local speedEnabled = false
+local customSpeed = 32
 
-local eggToggle = Instance.new("TextButton", eggSection)
-eggToggle.Size  = UDim2.new(1, 0, 0, 24)
-eggToggle.Position = UDim2.new(0, 0, 1, -24)
-eggToggle.Text  = "▷ Auto Buy Eggs: OFF"
-eggToggle.Font  = Enum.Font.GothamBold
-eggToggle.TextColor3       = Color3.new(1,1,1)
-eggToggle.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
-
-eggToggle.MouseButton1Click:Connect(function()
-    autoBuyEggs = not autoBuyEggs
-    eggToggle.Text = autoBuyEggs and "▶ Auto Buy Eggs: ON" or "▷ Auto Buy Eggs: OFF"
-    eggToggle.BackgroundColor3 = autoBuyEggs and Color3.fromRGB(120,80,120) or Color3.fromRGB(90,60,90)
+speedToggle.MouseButton1Click:Connect(function()
+    speedEnabled = not speedEnabled
+    speedToggle.Text = speedEnabled and "Speed: ON ✅" or "Speed: OFF"
 end)
 
-task.spawn(function()
+spawn(function()
     while true do
-        if autoBuyEggs then
-            for egg,_ in pairs(selectedEggs) do
-                pcall(function() eggBuy:FireServer(egg) end)
-                task.wait(0.1)
-            end
+        if speedEnabled then
+            pcall(function()
+                player.Character.Humanoid.WalkSpeed = customSpeed
+            end)
         end
-        task.wait(0.25)
+        task.wait(0.5)
+    end
+end)
+
+local function createList(name, items, parent, onSelect)
+    local holder = Instance.new("Frame", parent)
+    holder.Size = UDim2.new(1/3, -10, 1, -50)
+    holder.BackgroundTransparency = 1
+    local list = Instance.new("ScrollingFrame", holder)
+    list.Size = UDim2.new(1, 0, 1, -50)
+    list.CanvasSize = UDim2.new(0, 0, 0, #items * 30)
+    list.ScrollBarThickness = 4
+    list.BackgroundTransparency = 0.4
+    list.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+
+    local layout = Instance.new("UIListLayout", list)
+    layout.Padding = UDim.new(0, 4)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    for _, item in ipairs(items) do
+        local btn = Instance.new("TextButton", list)
+        btn.Size = UDim2.new(1, 0, 0, 28)
+        btn.Text = item
+        btn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 14
+        btn.MouseButton1Click:Connect(function()
+            for _, sibling in ipairs(list:GetChildren()) do
+                if sibling:IsA("TextButton") then
+                    sibling.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+                end
+            end
+            btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+            onSelect(item)
+        end)
+    end
+
+    local toggle = Instance.new("TextButton", holder)
+    toggle.Size = UDim2.new(1, 0, 0, 30)
+    toggle.Position = UDim2.new(0, 0, 1, -30)
+    toggle.BackgroundColor3 = Color3.fromRGB(90, 90, 120)
+    toggle.TextColor3 = Color3.new(1, 1, 1)
+    toggle.Font = Enum.Font.GothamBold
+    toggle.TextSize = 14
+    toggle.Text = "Toggle " .. name
+    return holder, toggle
+end
+
+local seedSection, seedToggle = createList("AutoBuy Seeds", seedItems, autoBuyFrame, function(name)
+    selectedSeed = name
+end)
+local gearSection, gearToggle = createList("AutoBuy Gear", gearItems, autoBuyFrame, function(name)
+    selectedGear = name
+end)
+local eggSection, eggToggle = createList("AutoBuy Egg", eggItems, autoBuyFrame, function(name)
+    selectedEgg = name
+end)
+
+seedSection.Position = UDim2.new(0/3, 0, 0, 0)
+gearSection.Position = UDim2.new(1/3, 5, 0, 0)
+eggSection.Position = UDim2.new(2/3, 10, 0, 0)
+
+seedToggle.MouseButton1Click:Connect(function()
+    autoBuySeeds = not autoBuySeeds
+    seedToggle.Text = (autoBuySeeds and "✅ AutoBuy Seeds") or "Toggle AutoBuy Seeds"
+end)
+gearToggle.MouseButton1Click:Connect(function()
+    autoBuyGear = not autoBuyGear
+    gearToggle.Text = (autoBuyGear and "✅ AutoBuy Gear") or "Toggle AutoBuy Gear"
+end)
+eggToggle.MouseButton1Click:Connect(function()
+    autoBuyEgg = not autoBuyEgg
+    eggToggle.Text = (autoBuyEgg and "✅ AutoBuy Egg") or "Toggle AutoBuy Egg"
+end)
+
+logo.MouseButton1Click:Connect(function()
+    main.Visible = not main.Visible
+end)
+
+autoBuyTab.MouseButton1Click:Connect(function()
+    autoBuyFrame.Visible = true
+    playerFrame.Visible = false
+    questFrame.Visible = false
+    autoBuyTab.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    playerTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    questTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+end)
+
+playerTab.MouseButton1Click:Connect(function()
+    autoBuyFrame.Visible = false
+    playerFrame.Visible = true
+    questFrame.Visible = false
+    playerTab.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    autoBuyTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    questTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+end)
+
+questTab.MouseButton1Click:Connect(function()
+    autoBuyFrame.Visible = false
+    playerFrame.Visible = false
+    questFrame.Visible = true
+    questTab.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    autoBuyTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    playerTab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+end)
+
+spawn(function()
+    while true do
+        if autoBuySeeds and selectedSeed then
+            seedBuy:FireServer(selectedSeed)
+        end
+        if autoBuyGear and selectedGear then
+            gearBuy:FireServer(selectedGear)
+        end
+        if autoBuyEgg and selectedEgg then
+            petEggBuy:FireServer(selectedEgg)
+        end
+        task.wait(1.5)
     end
 end)
