@@ -1,77 +1,132 @@
+-- CONFIG
+local MUTATIONS = { "Tranquil", "Pollinated" }
+local VARIANTS = { "Gold", "Rainbow" }
+local SCAN_DELAY = 1
+
+-- SERVICES
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local targetVariants = { "Tranquil", "Gold" }
+local rs = game:GetService("RunService")
 
--- Create toggle state
-local running = false
+-- MUTATION HANDLER (optional use)
+local MutationHandler = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("MutationHandler"))
 
--- GUI Setup
-local screenGui = Instance.new("ScreenGui", playerGui)
-screenGui.Name = "TranquilGoldCollectorUI"
+-- STATE FLAGS
+local espEnabled = false
+local collectEnabled = false
+
+-- CREATE GUI
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 screenGui.ResetOnSpawn = false
 
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 140, 0, 50)
-toggleButton.Position = UDim2.new(1, -160, 0, 20) -- ⬅️ Top-right corner
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.Font = Enum.Font.SourceSansBold
-toggleButton.TextSize = 18
-toggleButton.Text = "ESP: OFF"
-toggleButton.Parent = screenGui
-
--- ESP Creation
-local function makeESP(part, color)
-    local esp = Instance.new("BoxHandleAdornment")
-    esp.Name = "ESP"
-    esp.Adornee = part
-    esp.AlwaysOnTop = true
-    esp.ZIndex = 10
-    esp.Size = part.Size
-    esp.Color3 = color
-    esp.Transparency = 0.5
-    esp.Parent = part
+local function createButton(name, posY)
+    local btn = Instance.new("TextButton", screenGui)
+    btn.Name = name
+    btn.Size = UDim2.new(0, 140, 0, 50)
+    btn.Position = UDim2.new(1, -160, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 18
+    btn.Text = name .. ": OFF"
+    return btn
 end
 
--- Collect via touch
-local function collect(part)
-    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        firetouchinterest(hrp, part, 0)
-        task.wait(0.1)
-        firetouchinterest(hrp, part, 1)
+local espBtn = createButton("ESP", 20)
+local collectBtn = createButton("AutoCollect", 80)
+
+espBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+    espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(0,255,0) or Color3.fromRGB(0,200,255)
+end)
+collectBtn.MouseButton1Click:Connect(function()
+    collectEnabled = not collectEnabled
+    collectBtn.Text = "AutoCollect: " .. (collectEnabled and "ON" or "OFF")
+    collectBtn.BackgroundColor3 = collectEnabled and Color3.fromRGB(0,255,0) or Color3.fromRGB(0,200,255)
+end)
+
+-- HELPERS
+local function isTarget(nameList, value)
+    for _, v in ipairs(nameList) do
+        if v == value then return true end
+    end
+    return false
+end
+
+local function labelMaker(variantOrMutation, weight)
+    return string.format("Mango [%s] (%.1fkg)", variantOrMutation, weight or 0)
+end
+
+local function applyESP(part, text)
+    if part:FindFirstChild("FruitESP") then return end
+    local gui = Instance.new("BillboardGui")
+    gui.Name = "FruitESP"
+    gui.Size = UDim2.new(0,100,0,40)
+    gui.StudsOffset = Vector3.new(0,3,0)
+    gui.AlwaysOnTop = true
+    gui.Parent = part
+    local lbl = Instance.new("TextLabel", gui)
+    lbl.Size = UDim2.new(1,0,1,0)
+    lbl.BackgroundTransparency = 1
+    lbl.TextStrokeTransparency = 0
+    lbl.TextColor3 = Color3.fromRGB(255,255,0)
+    lbl.TextScaled = true
+    lbl.Text = text
+end
+
+local function collectFruit(fruit)
+    local prompt = fruit:FindFirstChildWhichIsA("ProximityPrompt", true)
+    if prompt and collectEnabled then
+        fireproximityprompt(prompt)
     end
 end
 
--- Main scan function
-local function scanAndCollect()
-    for _, mango in pairs(workspace:GetChildren()) do
-        if mango.Name == "Mango" and mango:IsA("Model") then
-            local variant = mango:FindFirstChild("Variant")
-            if variant and table.find(targetVariants, variant.Value) then
-                local part = mango:FindFirstChildWhichIsA("BasePart")
-                if part and not part:FindFirstChild("ESP") then
-                    makeESP(part, Color3.fromRGB(255, 255, 0)) -- Yellow ESP for both
-                    collect(part)
+-- SCAN LOOP
+rs.Heartbeat:Connect(function()
+    if not (espEnabled or collectEnabled) then return end
+    local plants = workspace:FindFirstChild("Farm") and workspace.Farm:FindFirstChild("Farm")
+    local phys = plants and plants:FindFirstChild("Important") and plants.Important:FindFirstChild("Plants_Physical")
+    if not phys then return end
+
+    for _, plant in ipairs(phys:GetChildren()) do
+        local fruitsFolder = plant:FindFirstChild("Fruits")
+        if fruitsFolder then
+            for _, fg in ipairs(fruitsFolder:GetChildren()) do
+                for _, fruit in ipairs(fg:GetChildren()) do
+                    -- Get weight
+                    local weightVal = fruit:FindFirstChild("Weight")
+                    local weight = weightVal and weightVal.Value or 0
+
+                    -- Check mutation
+                    local mut = fruit:FindFirstChild("Mutation")
+                    if mut then
+                        local scriptObj = mut:FindFirstChildWhichIsA("Script")
+                        if scriptObj then
+                            local name = scriptObj.Name
+                            if isTarget(MUTATIONS, name) then
+                                if espEnabled then applyESP(fruit:FindFirstChildWhichIsA("BasePart"), labelMaker(name, weight)) end
+                                collectFruit(fruit)
+                                continue
+                            end
+                        end
+                    end
+
+                    -- Check variant
+                    local var = fruit:FindFirstChild("Variant")
+                    if var then
+                        local scriptObj = var:FindFirstChildWhichIsA("Script")
+                        if scriptObj then
+                            local name = scriptObj.Name
+                            if isTarget(VARIANTS, name) then
+                                if espEnabled then applyESP(fruit:FindFirstChildWhichIsA("BasePart"), labelMaker(name, weight)) end
+                                collectFruit(fruit)
+                                continue
+                            end
+                        end
+                    end
                 end
             end
         end
-    end
-end
-
--- Toggle Button Action
-toggleButton.MouseButton1Click:Connect(function()
-    running = not running
-    toggleButton.Text = running and "ESP: ON" or "ESP: OFF"
-    toggleButton.BackgroundColor3 = running and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(0, 200, 255)
-end)
-
--- Main loop
-task.spawn(function()
-    while true do
-        if running then
-            scanAndCollect()
-        end
-        task.wait(1)
     end
 end)
