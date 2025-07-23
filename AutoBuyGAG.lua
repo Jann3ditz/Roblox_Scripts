@@ -10,6 +10,20 @@ local gearBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyGe
 local seedBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuySeedStock")
 local petEggBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyPetEgg")
 
+-- [ENSURE PETS & GEAR GUI VISIBILITY IN Teleport_UI]
+task.spawn(function()
+	local success, err = pcall(function()
+		local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+		local teleportUI = playerGui:WaitForChild("Teleport_UI")
+		local frame = teleportUI:WaitForChild("Frame")
+		frame:WaitForChild("Pets").Visible = true
+		frame:WaitForChild("Gear").Visible = true
+	end)
+	if not success then
+		warn("Failed to show Pets or Gear UI:", err)
+	end
+end)
+
 -- [STATES]
 local autoBuySeeds, autoBuyGear, autoBuyEgg = false, false, false
 local selectedSeeds, selectedGears, selectedEggs = {}, {}, {}
@@ -184,7 +198,6 @@ game:GetService("RunService").Stepped:Connect(function()
 		end
 	end
 end)
-
 
 local applyJump = applySpeed:Clone()
 applyJump.Text = "Apply Jump"
