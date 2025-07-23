@@ -3,6 +3,7 @@
 -- [SERVICES]
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 local gearBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("BuyGearStock")
@@ -22,14 +23,14 @@ local eggItems = {"Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "My
 -- [GUI ROOT]
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "AutoBuyGUI"
+gui.ResetOnSpawn = false
 
--- [OPEN BUTTON]
--- [OPEN BUTTON: Resized, Auto-Fitting Logo]
+-- [LOGO BUTTON (DRAGGABLE)]
 local logo = Instance.new("TextButton")
 logo.Name = "logo"
 logo.Parent = gui
 logo.Position = UDim2.new(0, 10, 0, 10)
-logo.Size = UDim2.new(0, 0, 0, 30) -- Fixed height, auto width
+logo.Size = UDim2.new(0, 0, 0, 30)
 logo.AutomaticSize = Enum.AutomaticSize.X
 logo.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
 logo.Text = "ᴊᴀɴɴ"
@@ -40,13 +41,56 @@ logo.TextXAlignment = Enum.TextXAlignment.Center
 logo.TextYAlignment = Enum.TextYAlignment.Center
 logo.BackgroundTransparency = 0
 
--- Add padding so the right side isn’t too tight
 local padding = Instance.new("UIPadding")
 padding.Parent = logo
 padding.PaddingLeft = UDim.new(0, 8)
 padding.PaddingRight = UDim.new(0, 8)
 
--- [MAIN FRAME]
+-- [DRAG HANDLE ICON]
+local dragIcon = Instance.new("ImageLabel", logo)
+dragIcon.Name = "DragHandle"
+dragIcon.Size = UDim2.new(0, 16, 0, 16)
+dragIcon.Position = UDim2.new(1, 4, 0.5, -8)
+dragIcon.BackgroundTransparency = 1
+dragIcon.Image = "rbxassetid://15190075990"
+dragIcon.ScaleType = Enum.ScaleType.Fit
+
+-- [DRAG LOGO ON HOLD]
+do
+	local dragging = false
+	local dragStart, startPos
+	local longPressActive = false
+	local longPressTime = 0.5
+
+	logo.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			longPressActive = true
+			dragStart = input.Position
+			startPos = logo.Position
+			task.delay(longPressTime, function()
+				if longPressActive then
+					dragging = true
+				end
+			end)
+		end
+	end)
+
+	logo.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			longPressActive = false
+			dragging = false
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			local delta = input.Position - dragStart
+			logo.Position = UDim2.new(0, startPos.X.Offset + delta.X, 0, startPos.Y.Offset + delta.Y)
+		end
+	end)
+end
+
+-- [MAIN GUI WINDOW]
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.new(0.9, 0, 0.9, 0)
 main.Position = UDim2.new(0.05, 0, 0.05, 0)
@@ -88,30 +132,7 @@ questFrame.Parent = main
 questFrame.BackgroundColor3 = Color3.fromRGB(30, 35, 40)
 questFrame.Visible = false
 
--- [QUEST BUTTONS]
-local function createQuestButton(text, order, targetUI)
-	local btn = Instance.new("TextButton", questFrame)
-	btn.Size = UDim2.new(0.6, 0, 0, 32)
-	btn.Position = UDim2.new(0.2, 0, 0, 10 + order * 40)
-	btn.Text = text
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 14
-	btn.TextColor3 = Color3.new(1,1,1)
-	btn.BackgroundColor3 = Color3.fromRGB(60, 100, 120)
-	btn.MouseButton1Click:Connect(function()
-		if targetUI then targetUI.Enabled = not targetUI.Enabled end
-	end)
-end
-
-local EventShopUI = player.PlayerGui:FindFirstChild("EventShop_UI")
-local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
-local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
-
-createQuestButton("Tranquil Treasures", 0, EventShopUI)
-createQuestButton("Daily Quest", 1, dailyUI)
-createQuestButton("Travelling Merchant", 2, merchantUI)
-
--- [PLAYER SPEED/JUMP INPUTS]
+-- [PLAYER SPEED & JUMP]
 local speedBox = Instance.new("TextBox", playerFrame)
 speedBox.Size = UDim2.new(0, 140, 0, 30)
 speedBox.Position = UDim2.new(0, 20, 0, 20)
@@ -165,7 +186,30 @@ spawn(function()
 	end
 end)
 
--- [MULTISELECT SECTIONS]
+-- [QUEST SHORTCUTS]
+local function createQuestButton(text, order, targetUI)
+	local btn = Instance.new("TextButton", questFrame)
+	btn.Size = UDim2.new(0.6, 0, 0, 32)
+	btn.Position = UDim2.new(0.2, 0, 0, 10 + order * 40)
+	btn.Text = text
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.BackgroundColor3 = Color3.fromRGB(60, 100, 120)
+	btn.MouseButton1Click:Connect(function()
+		if targetUI then targetUI.Enabled = not targetUI.Enabled end
+	end)
+end
+
+local EventShopUI = player.PlayerGui:FindFirstChild("EventShop_UI")
+local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
+local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
+
+createQuestButton("Tranquil Treasures", 0, EventShopUI)
+createQuestButton("Daily Quest", 1, dailyUI)
+createQuestButton("Travelling Merchant", 2, merchantUI)
+
+-- [MULTISELECT SYSTEM]
 local function createMultiSelectSection(name, items, parent, selectedTable)
 	local holder = Instance.new("Frame", parent)
 	holder.Size = UDim2.new(1/3, -10, 1, -50)
@@ -234,7 +278,7 @@ eggToggle.MouseButton1Click:Connect(function()
 	eggToggle.Text = autoBuyEgg and "✅ AutoBuy Egg" or "Toggle AutoBuy Egg"
 end)
 
--- [TAB SWITCH]
+-- [TAB SWITCHING]
 local function showTab(which)
 	autoBuyFrame.Visible = which == "auto"
 	playerFrame.Visible = which == "player"
@@ -252,21 +296,9 @@ questTab.MouseButton1Click:Connect(function() showTab("quest") end)
 -- [AUTO BUY LOOP]
 spawn(function()
 	while true do
-		if autoBuySeeds then
-			for name in pairs(selectedSeeds) do
-				seedBuy:FireServer(name)
-			end
-		end
-		if autoBuyGear then
-			for name in pairs(selectedGears) do
-				gearBuy:FireServer(name)
-			end
-		end
-		if autoBuyEgg then
-			for name in pairs(selectedEggs) do
-				petEggBuy:FireServer(name)
-			end
-		end
+		if autoBuySeeds then for name in pairs(selectedSeeds) do seedBuy:FireServer(name) end end
+		if autoBuyGear then for name in pairs(selectedGears) do gearBuy:FireServer(name) end end
+		if autoBuyEgg then for name in pairs(selectedEggs) do petEggBuy:FireServer(name) end end
 		task.wait(1.5)
 	end
 end)
