@@ -94,7 +94,7 @@ local dinoUI = player.PlayerGui:FindFirstChild("DinoQuests_UI")
 local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
 local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
 
-createQuestButton("Zen Shop", 0, ZenShopUI)
+createQuestButton("Zen Shop", 0, ZenEventUI)
 createQuestButton("Daily Quest", 1, dailyUI)
 createQuestButton("Travelling Merchant", 2, merchantUI)
 
