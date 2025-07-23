@@ -90,7 +90,8 @@ local function createQuestButton(text, order, targetUI)
 	end)
 end
 
-local dinoUI = player.PlayerGui:FindFirstChild("DinoQuests_UI")
+-- [ZEN SHOP UI HOOKUP]
+local ZenEventUI = player.PlayerGui:FindFirstChild("ZenEventUI")
 local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
 local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
 
