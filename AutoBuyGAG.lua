@@ -158,6 +158,34 @@ jumpBox.Position = UDim2.new(0, 20, 0, 60)
 jumpBox.Text = ""
 jumpBox.Parent = playerFrame
 
+-- [NOCLIP TOGGLE]
+local noclip = false
+
+local noclipBtn = Instance.new("TextButton", playerFrame)
+noclipBtn.Size = UDim2.new(0, 120, 0, 30)
+noclipBtn.Position = UDim2.new(0, 20, 0, 100)
+noclipBtn.Text = "Toggle Noclip"
+noclipBtn.Font = Enum.Font.GothamBold
+noclipBtn.TextSize = 14
+noclipBtn.BackgroundColor3 = Color3.fromRGB(100, 80, 100)
+noclipBtn.TextColor3 = Color3.new(1, 1, 1)
+
+noclipBtn.MouseButton1Click:Connect(function()
+	noclip = not noclip
+	noclipBtn.Text = noclip and "✅ Noclip On" or "Toggle Noclip"
+end)
+
+game:GetService("RunService").Stepped:Connect(function()
+	if noclip and player.Character then
+		for _, part in pairs(player.Character:GetDescendants()) do
+			if part:IsA("BasePart") and part.CanCollide then
+				part.CanCollide = false
+			end
+		end
+	end
+end)
+
+
 local applyJump = applySpeed:Clone()
 applyJump.Text = "Apply Jump"
 applyJump.Position = UDim2.new(0, 170, 0, 60)
