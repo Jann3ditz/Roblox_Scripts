@@ -91,11 +91,11 @@ local function createQuestButton(text, order, targetUI)
 end
 
 -- [ZEN SHOP UI HOOKUP]
-local ZenEventUI = player.PlayerGui:FindFirstChild("ZenShopEventUI")
+local ZenEventUI = player.PlayerGui:FindFirstChild("EventShop_UI")
 local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
 local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
 
-createQuestButton("Zen Shop", 0, ZenShopEventUI)
+createQuestButton("Zen Shop", 0, EventShopUI)
 createQuestButton("Daily Quest", 1, dailyUI)
 createQuestButton("Travelling Merchant", 2, merchantUI)
 
