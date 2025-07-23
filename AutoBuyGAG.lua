@@ -28,7 +28,7 @@ local logo = Instance.new("TextButton", gui)
 logo.Size = UDim2.new(0, 120, 0, 30)
 logo.Position = UDim2.new(0, 10, 0, 10)
 logo.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
-logo.Text = "⚡ Jann"
+logo.Text = "⚡"
 logo.Font = Enum.Font.FredokaOne
 logo.TextColor3 = Color3.new(1, 1, 1)
 logo.TextSize = 20
@@ -94,7 +94,7 @@ local dinoUI = player.PlayerGui:FindFirstChild("DinoQuests_UI")
 local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
 local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
 
-createQuestButton("Dino Quest", 0, dinoUI)
+createQuestButton("Zen Shop", 0, ZenUI)
 createQuestButton("Daily Quest", 1, dailyUI)
 createQuestButton("Travelling Merchant", 2, merchantUI)
 
