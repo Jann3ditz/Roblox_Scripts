@@ -24,14 +24,27 @@ local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "AutoBuyGUI"
 
 -- [OPEN BUTTON]
-local logo = Instance.new("TextButton", gui)
-logo.Size = UDim2.new(0, 80, 0, 30)
+-- [OPEN BUTTON: Resized, Auto-Fitting Logo]
+local logo = Instance.new("TextButton")
+logo.Name = "logo"
+logo.Parent = gui
 logo.Position = UDim2.new(0, 10, 0, 10)
+logo.Size = UDim2.new(0, 0, 0, 30) -- Fixed height, auto width
+logo.AutomaticSize = Enum.AutomaticSize.X
 logo.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
 logo.Text = "ᴊᴀɴɴ"
 logo.Font = Enum.Font.FredokaOne
 logo.TextColor3 = Color3.new(1, 1, 1)
 logo.TextSize = 20
+logo.TextXAlignment = Enum.TextXAlignment.Center
+logo.TextYAlignment = Enum.TextYAlignment.Center
+logo.BackgroundTransparency = 0
+
+-- Add padding so the right side isn’t too tight
+local padding = Instance.new("UIPadding")
+padding.Parent = logo
+padding.PaddingLeft = UDim.new(0, 8)
+padding.PaddingRight = UDim.new(0, 8)
 
 -- [MAIN FRAME]
 local main = Instance.new("Frame", gui)
