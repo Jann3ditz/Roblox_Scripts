@@ -1,4 +1,4 @@
--- ⚡ Auto Buy + Player Speed + Quest GUI (Mobile-Optimized MultiSelect v4)
+-- ⚡ Auto Buy + Player Speed + Jump + Quest GUI (Mobile-Optimized MultiSelect v4)
 
 -- [SERVICES]
 local Players = game:GetService("Players")
@@ -12,7 +12,7 @@ local petEggBuy = ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Buy
 -- [STATES]
 local autoBuySeeds, autoBuyGear, autoBuyEgg = false, false, false
 local selectedSeeds, selectedGears, selectedEggs = {}, {}, {}
-local customSpeed = 32
+local customSpeed, customJump = 32, 50
 
 -- [DATA]
 local seedItems = {"Strawberry", "Orange Tulip", "Tomato", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone Seed"}
@@ -25,10 +25,10 @@ gui.Name = "AutoBuyGUI"
 
 -- [OPEN BUTTON]
 local logo = Instance.new("TextButton", gui)
-logo.Size = UDim2.new(0, 120, 0, 30)
+logo.Size = UDim2.new(0, 80, 0, 30)
 logo.Position = UDim2.new(0, 10, 0, 10)
 logo.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
-logo.Text = "⚡"
+logo.Text = "ᴊᴀɴɴ"
 logo.Font = Enum.Font.FredokaOne
 logo.TextColor3 = Color3.new(1, 1, 1)
 logo.TextSize = 20
@@ -90,7 +90,6 @@ local function createQuestButton(text, order, targetUI)
 	end)
 end
 
--- [ZEN SHOP UI HOOKUP]
 local EventShopUI = player.PlayerGui:FindFirstChild("EventShop_UI")
 local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
 local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
@@ -99,7 +98,7 @@ createQuestButton("Tranquil Treasures", 0, EventShopUI)
 createQuestButton("Daily Quest", 1, dailyUI)
 createQuestButton("Travelling Merchant", 2, merchantUI)
 
--- [PLAYER SPEED UI]
+-- [PLAYER SPEED/JUMP INPUTS]
 local speedBox = Instance.new("TextBox", playerFrame)
 speedBox.Size = UDim2.new(0, 140, 0, 30)
 speedBox.Position = UDim2.new(0, 20, 0, 20)
@@ -119,21 +118,41 @@ applySpeed.TextSize = 14
 applySpeed.BackgroundColor3 = Color3.fromRGB(80, 60, 90)
 applySpeed.TextColor3 = Color3.new(1, 1, 1)
 
+local jumpBox = speedBox:Clone()
+jumpBox.PlaceholderText = "Enter jump (e.g. 50)"
+jumpBox.Position = UDim2.new(0, 20, 0, 60)
+jumpBox.Text = ""
+jumpBox.Parent = playerFrame
+
+local applyJump = applySpeed:Clone()
+applyJump.Text = "Apply Jump"
+applyJump.Position = UDim2.new(0, 170, 0, 60)
+applyJump.Parent = playerFrame
+
 applySpeed.MouseButton1Click:Connect(function()
 	local val = tonumber(speedBox.Text)
 	if val then customSpeed = val end
 end)
 
+applyJump.MouseButton1Click:Connect(function()
+	local val = tonumber(jumpBox.Text)
+	if val then customJump = val end
+end)
+
 spawn(function()
 	while true do
 		pcall(function()
-			player.Character.Humanoid.WalkSpeed = customSpeed
+			local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+			if hum then
+				hum.WalkSpeed = customSpeed
+				hum.JumpPower = customJump
+			end
 		end)
 		task.wait(0.5)
 	end
 end)
 
--- [MULTISELECT SECTION FUNCTION]
+-- [MULTISELECT SECTIONS]
 local function createMultiSelectSection(name, items, parent, selectedTable)
 	local holder = Instance.new("Frame", parent)
 	holder.Size = UDim2.new(1/3, -10, 1, -50)
@@ -181,7 +200,6 @@ local function createMultiSelectSection(name, items, parent, selectedTable)
 	return holder, toggle
 end
 
--- [CREATE SHOP LISTS]
 local seedSection, seedToggle = createMultiSelectSection("AutoBuy Seeds", seedItems, autoBuyFrame, selectedSeeds)
 local gearSection, gearToggle = createMultiSelectSection("AutoBuy Gear", gearItems, autoBuyFrame, selectedGears)
 local eggSection, eggToggle = createMultiSelectSection("AutoBuy Egg", eggItems, autoBuyFrame, selectedEggs)
@@ -190,7 +208,6 @@ seedSection.Position = UDim2.new(0/3, 0, 0, 0)
 gearSection.Position = UDim2.new(1/3, 5, 0, 0)
 eggSection.Position = UDim2.new(2/3, 10, 0, 0)
 
--- [TOGGLE HANDLERS]
 seedToggle.MouseButton1Click:Connect(function()
 	autoBuySeeds = not autoBuySeeds
 	seedToggle.Text = autoBuySeeds and "✅ AutoBuy Seeds" or "Toggle AutoBuy Seeds"
@@ -204,7 +221,7 @@ eggToggle.MouseButton1Click:Connect(function()
 	eggToggle.Text = autoBuyEgg and "✅ AutoBuy Egg" or "Toggle AutoBuy Egg"
 end)
 
--- [TAB SWITCHING]
+-- [TAB SWITCH]
 local function showTab(which)
 	autoBuyFrame.Visible = which == "auto"
 	playerFrame.Visible = which == "player"
