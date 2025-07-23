@@ -95,7 +95,7 @@ local ZenEventUI = player.PlayerGui:FindFirstChild("EventShop_UI")
 local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
 local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
 
-createQuestButton("Zen Shop", 0, EventShopUI)
+createQuestButton("Tranquil Treasures", 0, EventShopUI)
 createQuestButton("Daily Quest", 1, dailyUI)
 createQuestButton("Travelling Merchant", 2, merchantUI)
 
