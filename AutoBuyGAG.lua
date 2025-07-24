@@ -1,16 +1,16 @@
 -- ✅ Auto-enable FlyScript immediately when this script runs
 local player = game:GetService("Players").LocalPlayer
-local flyScript
+local FlyScript
 
 task.spawn(function()
 	repeat
 		local playerScripts = player:FindFirstChild("PlayerScripts")
-		flyScript = playerScripts and playerScripts:FindFirstChild("FlyScript")
+		FlyScript = playerScripts and playerScripts:FindFirstChild("FlyScript")
 		task.wait(0.5)
-	until flyScript
+	until FlyScript
 
-	if flyScript and not flyScript.Enabled then
-		flyScript.Enabled = true
+	if FlyScript and not FlyScript.Enabled then
+		FlyScript.Enabled = true
 		print("✅ FlyScript has been enabled on script run.")
 	else
 		print("ℹ️ FlyScript already enabled or missing.")
