@@ -351,6 +351,60 @@ eggToggle.MouseButton1Click:Connect(function()
 	eggToggle.Text = autoBuyEgg and "✅ AutoBuy Egg" or "Toggle AutoBuy Egg"
 end)
 
+-- [SELECT ALL BUTTONS]
+
+local selectAllSeeds = Instance.new("TextButton", seedSection)
+selectAllSeeds.Size = UDim2.new(1, 0, 0, 30)
+selectAllSeeds.Position = UDim2.new(0, 0, 1, 0)
+selectAllSeeds.BackgroundColor3 = Color3.fromRGB(70, 110, 70)
+selectAllSeeds.TextColor3 = Color3.new(1, 1, 1)
+selectAllSeeds.Font = Enum.Font.GothamBold
+selectAllSeeds.TextSize = 14
+selectAllSeeds.Text = "Select All Seeds"
+selectAllSeeds.MouseButton1Click:Connect(function()
+	for _, btn in pairs(seedSection:GetDescendants()) do
+		if btn:IsA("TextButton") and selectedSeeds[btn.Text] == nil and btn.Text ~= seedToggle.Text and btn.Text ~= selectAllSeeds.Text then
+			selectedSeeds[btn.Text] = true
+			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		end
+	end
+end)
+
+local selectAllGears = Instance.new("TextButton", gearSection)
+selectAllGears.Size = UDim2.new(1, 0, 0, 30)
+selectAllGears.Position = UDim2.new(0, 0, 1, 0)
+selectAllGears.BackgroundColor3 = Color3.fromRGB(70, 110, 70)
+selectAllGears.TextColor3 = Color3.new(1, 1, 1)
+selectAllGears.Font = Enum.Font.GothamBold
+selectAllGears.TextSize = 14
+selectAllGears.Text = "Select All Gear"
+selectAllGears.MouseButton1Click:Connect(function()
+	for _, btn in pairs(gearSection:GetDescendants()) do
+		if btn:IsA("TextButton") and selectedGears[btn.Text] == nil and btn.Text ~= gearToggle.Text and btn.Text ~= selectAllGears.Text then
+			selectedGears[btn.Text] = true
+			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		end
+	end
+end)
+
+local selectAllEggs = Instance.new("TextButton", eggSection)
+selectAllEggs.Size = UDim2.new(1, 0, 0, 30)
+selectAllEggs.Position = UDim2.new(0, 0, 1, 0)
+selectAllEggs.BackgroundColor3 = Color3.fromRGB(70, 110, 70)
+selectAllEggs.TextColor3 = Color3.new(1, 1, 1)
+selectAllEggs.Font = Enum.Font.GothamBold
+selectAllEggs.TextSize = 14
+selectAllEggs.Text = "Select All Eggs"
+selectAllEggs.MouseButton1Click:Connect(function()
+	for _, btn in pairs(eggSection:GetDescendants()) do
+		if btn:IsA("TextButton") and selectedEggs[btn.Text] == nil and btn.Text ~= eggToggle.Text and btn.Text ~= selectAllEggs.Text then
+			selectedEggs[btn.Text] = true
+			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		end
+	end
+end)
+
+
 -- [TAB SWITCHING]
 local function showTab(which)
 	autoBuyFrame.Visible = which == "auto"
