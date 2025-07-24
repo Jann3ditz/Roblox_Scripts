@@ -1,3 +1,18 @@
+-- ✅ Auto-enable FlyScript on join
+local player = game:GetService("Players").LocalPlayer
+task.spawn(function()
+	local success, err = pcall(function()
+		local flyScript = player:WaitForChild("PlayerScripts"):WaitForChild("FlyScript", 5)
+		if flyScript and not flyScript.Enabled then
+			flyScript.Enabled = true
+			print("✅ FlyScript enabled on join.")
+		end
+	end)
+	if not success then
+		warn("❌ Could not enable FlyScript:", err)
+	end
+end)
+
 -- ⚡ Auto Buy + Player Speed + Jump + Quest GUI (Mobile-Optimized MultiSelect v4)
 
 -- [SERVICES]
