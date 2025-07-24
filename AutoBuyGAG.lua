@@ -242,19 +242,25 @@ local function createQuestButton(text, order, targetUI)
 	end)
 end
 
-local EventShopUI = player.PlayerGui:FindFirstChild("EventShop_UI")
-local dailyUI = player.PlayerGui:FindFirstChild("DailyQuests_UI")
-local merchantUI = player.PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
-local SeedShopUI = player.PlayerGui:FindFirstChild("SeedShop_UI")
-local GearShopUI = player.PlayerGui:FindFirstChild("GearShop_UI")
+local player = game:GetService("Players").LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
 
+local EventShopUI = PlayerGui:FindFirstChild("EventShop_UI")
+local dailyUI = PlayerGui:FindFirstChild("DailyQuests_UI")
+local merchantUI = PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
+
+-- ✅ Correct UI names for Seed and Gear Shop
+local SeedShopUI = PlayerGui:FindFirstChild("Seed_Shop")
+local GearShopUI = PlayerGui:FindFirstChild("Gear_Shop")
+
+-- 🔒 Hide all shop UIs by default
 if EventShopUI then EventShopUI.Enabled = false end
 if dailyUI then dailyUI.Enabled = false end
 if merchantUI then merchantUI.Enabled = false end
 if SeedShopUI then SeedShopUI.Enabled = false end
 if GearShopUI then GearShopUI.Enabled = false end
 
--- Create toggle buttons in quest tab
+-- 🧭 Create toggle buttons in Quest tab
 createQuestButton("Tranquil Treasures", 0, EventShopUI)
 createQuestButton("Daily Quest", 1, dailyUI)
 createQuestButton("Travelling Merchant", 2, merchantUI)
