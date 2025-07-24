@@ -227,6 +227,21 @@ spawn(function()
 	end
 end)
 
+local player = game:GetService("Players").LocalPlayer
+local touchGui = player:WaitForChild("PlayerGui"):FindFirstChild("TouchGui")
+
+if touchGui then
+	touchGui.Enabled = true -- Ensure TouchGui itself is enabled
+
+	-- Optional: Force-enable jump button if it exists
+	local jumpButton = touchGui:FindFirstChild("JumpButton", true) -- search deep
+	if jumpButton then
+		jumpButton.Visible = true
+		jumpButton.Active = true
+	end
+end
+
+
 -- [QUEST SHORTCUTS]
 local function createQuestButton(text, order, targetUI)
 	local btn = Instance.new("TextButton", questFrame)
