@@ -1,22 +1,24 @@
--- ✅ Auto-enable FlyScript immediately when this script runs
+-- ✅ Auto-enable FlyScript & unlock flying
 local player = game:GetService("Players").LocalPlayer
-local FlyScript
 
+-- Force the "Creative" attribute so the FlyScript logic allows flying
+player:SetAttribute("Gamemode", "Creative")
+
+-- Wait until FlyScript loads and enable it
 task.spawn(function()
-	repeat
-		local playerScripts = player:FindFirstChild("PlayerScripts")
-		FlyScript = playerScripts and playerScripts:FindFirstChild("FlyScript")
+	while true do
+		local ps = player:FindFirstChild("PlayerScripts")
+		local flyScript = ps and ps:FindFirstChild("FlyScript")
+		if flyScript then
+			if not flyScript.Enabled then
+				flyScript.Enabled = true
+				print("✅ FlyScript has been enabled.")
+			end
+			break
+		end
 		task.wait(0.5)
-	until FlyScript
-
-	if FlyScript and not FlyScript.Enabled then
-		FlyScript.Enabled = true
-		print("✅ FlyScript has been enabled on script run.")
-	else
-		print("ℹ️ FlyScript already enabled or missing.")
 	end
 end)
-
 
 -- ⚡ Auto Buy + Player Speed + Jump + Quest GUI (Mobile-Optimized MultiSelect v4)
 
