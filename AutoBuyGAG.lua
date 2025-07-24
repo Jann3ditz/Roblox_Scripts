@@ -330,28 +330,27 @@ local function createMultiSelectSection(name, items, parent, selectedTable)
 	return holder, toggle
 end
 
-local seedSection, seedToggle = createMultiSelectSection("AutoBuy Seeds", seedItems, autoBuyFrame, selectedSeeds)
-local gearSection, gearToggle = createMultiSelectSection("AutoBuy Gear", gearItems, autoBuyFrame, selectedGears)
-local eggSection, eggToggle = createMultiSelectSection("AutoBuy Egg", eggItems, autoBuyFrame, selectedEggs)
-
-seedSection.Position = UDim2.new(0/3, 0, 0, 0)
-gearSection.Position = UDim2.new(1/3, 5, 0, 0)
-eggSection.Position = UDim2.new(2/3, 10, 0, 0)
-
-seedToggle.MouseButton1Click:Connect(function()
-	autoBuySeeds = not autoBuySeeds
-	seedToggle.Text = autoBuySeeds and "✅ AutoBuy Seeds" or "Toggle AutoBuy Seeds"
-end)
-gearToggle.MouseButton1Click:Connect(function()
-	autoBuyGear = not autoBuyGear
-	gearToggle.Text = autoBuyGear and "✅ AutoBuy Gear" or "Toggle AutoBuy Gear"
-end)
-eggToggle.MouseButton1Click:Connect(function()
-	autoBuyEgg = not autoBuyEgg
-	eggToggle.Text = autoBuyEgg and "✅ AutoBuy Egg" or "Toggle AutoBuy Egg"
-end)
-
 -- [SELECT ALL BUTTONS]
+
+local function toggleSelectAll(section, selectedTable, toggleBtn)
+	local allSelected = true
+	local buttons = {}
+
+	for _, btn in pairs(section:GetDescendants()) do
+		if btn:IsA("TextButton") and btn.Text ~= toggleBtn.Text and not btn.Text:match("^Select All") then
+			table.insert(buttons, btn)
+			if not selectedTable[btn.Text] then
+				allSelected = false
+			end
+		end
+	end
+
+	for _, btn in pairs(buttons) do
+		local isSelecting = not allSelected
+		selectedTable[btn.Text] = isSelecting or nil
+		btn.BackgroundColor3 = isSelecting and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(40, 40, 40)
+	end
+end
 
 local selectAllSeeds = Instance.new("TextButton", seedSection)
 selectAllSeeds.Size = UDim2.new(1, 0, 0, 30)
@@ -362,12 +361,7 @@ selectAllSeeds.Font = Enum.Font.GothamBold
 selectAllSeeds.TextSize = 14
 selectAllSeeds.Text = "Select All Seeds"
 selectAllSeeds.MouseButton1Click:Connect(function()
-	for _, btn in pairs(seedSection:GetDescendants()) do
-		if btn:IsA("TextButton") and selectedSeeds[btn.Text] == nil and btn.Text ~= seedToggle.Text and btn.Text ~= selectAllSeeds.Text then
-			selectedSeeds[btn.Text] = true
-			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-		end
-	end
+	toggleSelectAll(seedSection, selectedSeeds, seedToggle)
 end)
 
 local selectAllGears = Instance.new("TextButton", gearSection)
@@ -379,12 +373,7 @@ selectAllGears.Font = Enum.Font.GothamBold
 selectAllGears.TextSize = 14
 selectAllGears.Text = "Select All Gear"
 selectAllGears.MouseButton1Click:Connect(function()
-	for _, btn in pairs(gearSection:GetDescendants()) do
-		if btn:IsA("TextButton") and selectedGears[btn.Text] == nil and btn.Text ~= gearToggle.Text and btn.Text ~= selectAllGears.Text then
-			selectedGears[btn.Text] = true
-			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-		end
-	end
+	toggleSelectAll(gearSection, selectedGears, gearToggle)
 end)
 
 local selectAllEggs = Instance.new("TextButton", eggSection)
@@ -396,12 +385,7 @@ selectAllEggs.Font = Enum.Font.GothamBold
 selectAllEggs.TextSize = 14
 selectAllEggs.Text = "Select All Eggs"
 selectAllEggs.MouseButton1Click:Connect(function()
-	for _, btn in pairs(eggSection:GetDescendants()) do
-		if btn:IsA("TextButton") and selectedEggs[btn.Text] == nil and btn.Text ~= eggToggle.Text and btn.Text ~= selectAllEggs.Text then
-			selectedEggs[btn.Text] = true
-			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-		end
-	end
+	toggleSelectAll(eggSection, selectedEggs, eggToggle)
 end)
 
 
