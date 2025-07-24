@@ -342,17 +342,7 @@ seedToggle.MouseButton1Click:Connect(function()
 	autoBuySeeds = not autoBuySeeds
 	seedToggle.Text = autoBuySeeds and "✅ AutoBuy Seeds" or "Toggle AutoBuy Seeds"
 end)
-gearToggle.MouseButton1Click:Connect(function()
-	autoBuyGear = not autoBuyGear
-	gearToggle.Text = autoBuyGear and "✅ AutoBuy Gear" or "Toggle AutoBuy Gear"
-end)
-eggToggle.MouseButton1Click:Connect(function()
-	autoBuyEgg = not autoBuyEgg
-	eggToggle.Text = autoBuyEgg and "✅ AutoBuy Egg" or "Toggle AutoBuy Egg"
-end)
-
--- [SELECT ALL BUTTONS]
-
+local seedsSelected = false
 local selectAllSeeds = Instance.new("TextButton", seedSection)
 selectAllSeeds.Size = UDim2.new(1, 0, 0, 30)
 selectAllSeeds.Position = UDim2.new(0, 0, 1, 0)
@@ -361,15 +351,29 @@ selectAllSeeds.TextColor3 = Color3.new(1, 1, 1)
 selectAllSeeds.Font = Enum.Font.GothamBold
 selectAllSeeds.TextSize = 14
 selectAllSeeds.Text = "Select All Seeds"
+
 selectAllSeeds.MouseButton1Click:Connect(function()
+	seedsSelected = not seedsSelected
+	selectAllSeeds.Text = seedsSelected and "Unselect All Seeds" or "Select All Seeds"
+
 	for _, btn in pairs(seedSection:GetDescendants()) do
-		if btn:IsA("TextButton") and selectedSeeds[btn.Text] == nil and btn.Text ~= seedToggle.Text and btn.Text ~= selectAllSeeds.Text then
-			selectedSeeds[btn.Text] = true
-			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		if btn:IsA("TextButton") and btn.Text ~= seedToggle.Text and btn.Text ~= selectAllSeeds.Text then
+			if seedsSelected then
+				selectedSeeds[btn.Text] = true
+				btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+			else
+				selectedSeeds[btn.Text] = nil
+				btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+			end
 		end
 	end
 end)
 
+gearToggle.MouseButton1Click:Connect(function()
+	autoBuyGear = not autoBuyGear
+	gearToggle.Text = autoBuyGear and "✅ AutoBuy Gear" or "Toggle AutoBuy Gear"
+end)
+local gearsSelected = false
 local selectAllGears = Instance.new("TextButton", gearSection)
 selectAllGears.Size = UDim2.new(1, 0, 0, 30)
 selectAllGears.Position = UDim2.new(0, 0, 1, 0)
@@ -378,15 +382,28 @@ selectAllGears.TextColor3 = Color3.new(1, 1, 1)
 selectAllGears.Font = Enum.Font.GothamBold
 selectAllGears.TextSize = 14
 selectAllGears.Text = "Select All Gear"
+
 selectAllGears.MouseButton1Click:Connect(function()
+	gearsSelected = not gearsSelected
+	selectAllGears.Text = gearsSelected and "Unselect All Gear" or "Select All Gear"
+
 	for _, btn in pairs(gearSection:GetDescendants()) do
-		if btn:IsA("TextButton") and selectedGears[btn.Text] == nil and btn.Text ~= gearToggle.Text and btn.Text ~= selectAllGears.Text then
-			selectedGears[btn.Text] = true
-			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		if btn:IsA("TextButton") and btn.Text ~= gearToggle.Text and btn.Text ~= selectAllGears.Text then
+			if gearsSelected then
+				selectedGears[btn.Text] = true
+				btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+			else
+				selectedGears[btn.Text] = nil
+				btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+			end
 		end
 	end
 end)
-
+eggToggle.MouseButton1Click:Connect(function()
+	autoBuyEgg = not autoBuyEgg
+	eggToggle.Text = autoBuyEgg and "✅ AutoBuy Egg" or "Toggle AutoBuy Egg"
+end)
+local eggsSelected = false
 local selectAllEggs = Instance.new("TextButton", eggSection)
 selectAllEggs.Size = UDim2.new(1, 0, 0, 30)
 selectAllEggs.Position = UDim2.new(0, 0, 1, 0)
@@ -395,11 +412,20 @@ selectAllEggs.TextColor3 = Color3.new(1, 1, 1)
 selectAllEggs.Font = Enum.Font.GothamBold
 selectAllEggs.TextSize = 14
 selectAllEggs.Text = "Select All Eggs"
+
 selectAllEggs.MouseButton1Click:Connect(function()
+	eggsSelected = not eggsSelected
+	selectAllEggs.Text = eggsSelected and "Unselect All Eggs" or "Select All Eggs"
+
 	for _, btn in pairs(eggSection:GetDescendants()) do
-		if btn:IsA("TextButton") and selectedEggs[btn.Text] == nil and btn.Text ~= eggToggle.Text and btn.Text ~= selectAllEggs.Text then
-			selectedEggs[btn.Text] = true
-			btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		if btn:IsA("TextButton") and btn.Text ~= eggToggle.Text and btn.Text ~= selectAllEggs.Text then
+			if eggsSelected then
+				selectedEggs[btn.Text] = true
+				btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+			else
+				selectedEggs[btn.Text] = nil
+				btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+			end
 		end
 	end
 end)
