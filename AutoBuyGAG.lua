@@ -227,6 +227,35 @@ spawn(function()
 	end
 end)
 
+-- 🛒 One-Time Auto Sell Inventory Button
+local autoSellEnabled = false
+
+local autoSellButton = Instance.new("TextButton")
+autoSellButton.Name = "AutoSellInventoryButton"
+autoSellButton.Parent = PlayerTab
+autoSellButton.Size = UDim2.new(0, 180, 0, 35)
+autoSellButton.Position = UDim2.new(0, 10, 0, 230) -- adjust Y if needed
+autoSellButton.Text = "Auto Sell Inventory: OFF"
+autoSellButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+autoSellButton.Font = Enum.Font.GothamBold
+autoSellButton.TextColor3 = Color3.new(1, 1, 1)
+autoSellButton.TextSize = 14
+
+autoSellButton.MouseButton1Click:Connect(function()
+	autoSellEnabled = not autoSellEnabled
+	autoSellButton.Text = "Auto Sell Inventory: " .. (autoSellEnabled and "ON" or "OFF")
+	autoSellButton.BackgroundColor3 = autoSellEnabled and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
+
+	if autoSellEnabled then
+		local success, err = pcall(function()
+			game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("Sell_Inventory"):FireServer()
+		end)
+		if not success then
+			warn("AutoSell Error:", err)
+		end
+	end
+end)
+
 local player = game:GetService("Players").LocalPlayer
 local touchGui = player:WaitForChild("PlayerGui"):FindFirstChild("TouchGui")
 
