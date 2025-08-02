@@ -189,6 +189,23 @@ noclipBtn.MouseButton1Click:Connect(function()
 	noclipBtn.Text = noclip and "✅ Noclip On" or "Toggle Noclip"
 end)
 
+-- 🧭 TELEPORT BUTTON (Top right side of Player Tab)
+local tpButton = Instance.new("TextButton", playerFrame)
+tpButton.Size = UDim2.new(0, 140, 0, 30)
+tpButton.Position = UDim2.new(1, -160, 0, 20) -- Top-right: 160px from right edge
+tpButton.Text = "Teleport to Spot"
+tpButton.Font = Enum.Font.GothamBold
+tpButton.TextSize = 14
+tpButton.BackgroundColor3 = Color3.fromRGB(120, 90, 90)
+tpButton.TextColor3 = Color3.new(1, 1, 1)
+
+tpButton.MouseButton1Click:Connect(function()
+	local character = player.Character
+	if character and character:FindFirstChild("HumanoidRootPart") then
+		character:MoveTo(Vector3.new(-105, 4, -12))
+	end
+end)
+
 game:GetService("RunService").Stepped:Connect(function()
 	if noclip and player.Character then
 		for _, part in pairs(player.Character:GetDescendants()) do
