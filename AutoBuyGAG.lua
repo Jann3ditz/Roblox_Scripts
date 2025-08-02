@@ -190,7 +190,7 @@ noclipBtn.MouseButton1Click:Connect(function()
 end)
 
 -- 🧭 TELEPORT BUTTON (Top right side of Player Tab)
-local tpButton = Instance.new("TextButton", playerFrame)
+local tpButton = Instance.new("Teleport to Cooking Pot", playerFrame)
 tpButton.Size = UDim2.new(0, 140, 0, 30)
 tpButton.Position = UDim2.new(1, -160, 0, 20) -- Top-right: 160px from right edge
 tpButton.Text = "Teleport to Spot"
@@ -244,40 +244,7 @@ spawn(function()
 	end
 end)
 
--- 🛒 One-Time Auto Sell Inventory Button
--- AUTO SELL INVENTORY BUTTON (One-time Sell)
-local autoSellButton = Instance.new("TextButton")
-autoSellButton.Name = "AutoSellInventoryButton"
-autoSellButton.Parent = playerFrame
-autoSellButton.Size = UDim2.new(0, 180, 0, 35)
-autoSellButton.Position = UDim2.new(0, 10, 0, 170) -- adjust Y (170) as needed to avoid overlap
-autoSellButton.Text = "Sell Inventory"
-autoSellButton.Font = Enum.Font.GothamBold
-autoSellButton.TextSize = 14
-autoSellButton.TextColor3 = Color3.new(1, 1, 1)
-autoSellButton.BackgroundColor3 = Color3.fromRGB(85, 90, 120)
-autoSellButton.BorderSizePixel = 0
-autoSellButton.AutoButtonColor = true
-
-autoSellButton.MouseButton1Click:Connect(function()
-    local success, err = pcall(function()
-        game:GetService("ReplicatedStorage")
-            :WaitForChild("GameEvents")
-            :WaitForChild("Sell_Inventory")
-            :FireServer()
-    end)
-    if success then
-        autoSellButton.Text = "Sold!"
-        task.wait(1)
-        autoSellButton.Text = "Sell Inventory"
-    else
-        autoSellButton.Text = "Error"
-        warn("Sell failed:", err)
-        task.wait(1)
-        autoSellButton.Text = "Sell Inventory"
-    end
-end)
-
+-- 🛒 
 local player = game:GetService("Players").LocalPlayer
 local touchGui = player:WaitForChild("PlayerGui"):FindFirstChild("TouchGui")
 
