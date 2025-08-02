@@ -30,9 +30,9 @@ local selectedSeeds, selectedGears, selectedEggs = {}, {}, {}
 local customSpeed, customJump = 32, 50
 
 -- [DATA]
-local seedItems = {"Strawberry", "Orange Tulip", "Tomato", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone Seed"}
+local seedItems = { "Carrot", "Strawberry", "Blueberry" ,"Orange Tulip", "Tomato", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone Seed"}
 local gearItems = {"Watering Can", "Trading Ticket", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler", "Godly Sprinkler", "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Favorite Tool", "Friendship Pot", "Harvest Tool", "Tanning Mirror", "Levelup Lollipop", "Medium Treat", "Medium Toy"}
-local eggItems = {"Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bee Egg", "Bug Egg", "Common Summer Egg", "Rare Summer Egg", "Paradise Egg", "Oasis Egg"}
+local eggItems = {"Common Egg", "Common Summer Egg", "Rare Summer Egg", "Mythical Egg", "Paradise Egg" , "Bug Egg"}
 
 -- [GUI ROOT]
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
