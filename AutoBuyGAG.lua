@@ -190,9 +190,10 @@ noclipBtn.MouseButton1Click:Connect(function()
 end)
 
 -- 🧭 TELEPORT BUTTON (Top right side of Player Tab)
-local tpButton = Instance.new("Teleport to Cooking Pot", playerFrame)
+-- 🧭 TELEPORT BUTTON (Top right side of Player Tab)
+local tpButton = Instance.new("TextButton", playerFrame)
 tpButton.Size = UDim2.new(0, 140, 0, 30)
-tpButton.Position = UDim2.new(1, -160, 0, 20) -- Top-right: 160px from right edge
+tpButton.Position = UDim2.new(1, -160, 0, 20)
 tpButton.Text = "Teleport to Spot"
 tpButton.Font = Enum.Font.GothamBold
 tpButton.TextSize = 14
