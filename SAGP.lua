@@ -6,18 +6,17 @@ gui.Name = "LockTPGui"
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 200, 0, 50)
-button.Position = UDim2.new(0.5, -100, 0.8, 0)
-button.Text = "Teleport OFF"
-button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+button.Size = UDim2.new(0, 120, 0, 40)
+button.Position = UDim2.new(1, -130, 0, 10) -- upper right corner
+button.Text = "LockTP: OFF"
+button.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
 button.Font = Enum.Font.SourceSansBold
-button.TextSize = 20
+button.TextSize = 18
 button.Parent = gui
 
--- State variable
-local teleportEnabled = false
-local loopThread
+-- Toggle state
+local isToggled = false
 
 -- Find my base's lock
 local function getMyLock()
@@ -25,9 +24,9 @@ local function getMyLock()
 
     for _, base in ipairs(basesFolder:GetChildren()) do
         if base:IsA("Model") then
-            local ownerGui = base:FindFirstChild("Owner")
-            if ownerGui and ownerGui:FindFirstChild("OwnerGui") then
-                local displayNameLabel = ownerGui.OwnerGui:FindFirstChild("DisplayName")
+            local owner = base:FindFirstChild("Owner")
+            if owner and owner:FindFirstChild("OwnerGui") then
+                local displayNameLabel = owner.OwnerGui:FindFirstChild("DisplayName")
                 if displayNameLabel and displayNameLabel:IsA("TextLabel") then
                     if displayNameLabel.Text == player.DisplayName then
                         local lockPart = base:FindFirstChild("Lock")
@@ -42,33 +41,24 @@ local function getMyLock()
     return nil
 end
 
--- Toggle teleport loop
-button.MouseButton1Click:Connect(function()
-    teleportEnabled = not teleportEnabled
+-- Auto TP loop
+task.spawn(function()
+    while task.wait(0.5) do
+        if isToggled then
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            local lockPart = getMyLock()
 
-    if teleportEnabled then
-        button.Text = "Teleport ON"
-        button.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-
-        loopThread = task.spawn(function()
-            while teleportEnabled do
-                local char = player.Character or player.CharacterAdded:Wait()
-                local hrp = char:WaitForChild("HumanoidRootPart")
-                local lockPart = getMyLock()
-
-                if lockPart then
-                    hrp.CFrame = lockPart.CFrame + Vector3.new(0, 3, 0)
-                else
-                    warn("⚠ Could not find your base lock!")
-                end
-
-                task.wait(1) -- Teleport every 1 second
+            if hrp and lockPart then
+                hrp.CFrame = lockPart.CFrame + Vector3.new(0, 3, 0)
             end
-        end)
-
-    else
-        button.Text = "Teleport OFF"
-        button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        end
     end
 end)
 
+-- Button click toggle
+button.MouseButton1Click:Connect(function()
+    isToggled = not isToggled
+    button.Text = isToggled and "LockTP: ON" or "LockTP: OFF"
+    button.BackgroundColor3 = isToggled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 150, 250)
+end)
