@@ -1,4 +1,4 @@
-merge it here make sure the changes  doesnt affect the other functions    --// Services
+--// Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
@@ -257,4 +257,4 @@ task.spawn(function()
 end)
 
 -- Build once
-createGUI()
+createGUI()     merge it here
