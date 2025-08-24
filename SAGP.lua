@@ -20,8 +20,8 @@ logo.Parent = gui
 
 -- Menu Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 220)
-frame.Position = UDim2.new(0.5, -150, 0.5, -110) -- center screen
+frame.Size = UDim2.new(0, 300, 0, 260)
+frame.Position = UDim2.new(0.5, -150, 0.5, -130) -- center screen
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.Visible = false
 frame.Active = true
@@ -57,6 +57,17 @@ lockTpBtn.Font = Enum.Font.SourceSansBold
 lockTpBtn.TextSize = 18
 lockTpBtn.Parent = frame
 
+-- Noclip Button
+local noclipBtn = Instance.new("TextButton")
+noclipBtn.Size = UDim2.new(0, 120, 0, 40)
+noclipBtn.Position = UDim2.new(0, 160, 0, 40)
+noclipBtn.Text = "Noclip: OFF"
+noclipBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 200)
+noclipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipBtn.Font = Enum.Font.SourceSansBold
+noclipBtn.TextSize = 18
+noclipBtn.Parent = frame
+
 -- Hitbox Label
 local hitboxLabel = Instance.new("TextLabel")
 hitboxLabel.Size = UDim2.new(0, 120, 0, 20)
@@ -86,6 +97,7 @@ applyBtn.Parent = frame
 
 -- Toggle state
 local isToggled = false
+local noclipEnabled = false
 
 -- Find my base's lock
 local function getMyLock()
@@ -123,11 +135,31 @@ task.spawn(function()
     end
 end)
 
--- Button click toggle
+-- Noclip loop
+task.spawn(function()
+    while task.wait() do
+        if noclipEnabled and player.Character then
+            for _, part in pairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+-- Button click toggle LockTP
 lockTpBtn.MouseButton1Click:Connect(function()
     isToggled = not isToggled
     lockTpBtn.Text = isToggled and "LockTP: ON" or "LockTP: OFF"
     lockTpBtn.BackgroundColor3 = isToggled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 150, 250)
+end)
+
+-- Button click toggle Noclip
+noclipBtn.MouseButton1Click:Connect(function()
+    noclipEnabled = not noclipEnabled
+    noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
+    noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(150, 50, 200)
 end)
 
 -- Apply Hitbox
