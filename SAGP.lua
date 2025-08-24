@@ -5,6 +5,8 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local isToggled = false
 local noclipEnabled = false
+local hitboxEnabled = false
+local hitboxSize = 5
 
 --// Function to build GUI
 local function createGUI()
@@ -136,28 +138,36 @@ local function createGUI()
         noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(150, 50, 200)
     end)
 
-    -- Apply Hitbox
+    -- Apply Hitbox (Infinite Yield style)
     applyBtn.MouseButton1Click:Connect(function()
         local size = tonumber(hitboxInput.Text)
         if size then
-            task.spawn(function()
-                while task.wait(0.5) do
-                    for _, plr in ipairs(Players:GetPlayers()) do
-                        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                            local hrp = plr.Character.HumanoidRootPart
-                            hrp.Size = Vector3.new(size, size, size)
-                            hrp.Transparency = 0.5
-                            hrp.BrickColor = BrickColor.new("Bright red")
-                            hrp.CanCollide = false
-                        end
-                    end
-                end
-            end)
+            hitboxSize = size
+            hitboxEnabled = true
         end
     end)
 
     return gui
 end
+
+--// Hitbox Loop
+task.spawn(function()
+    while task.wait(0.5) do
+        if hitboxEnabled then
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = plr.Character.HumanoidRootPart
+                    hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    hrp.Transparency = 0.5
+                    hrp.Color = Color3.fromRGB(255, 0, 0)
+                    hrp.Material = Enum.Material.Neon
+                    hrp.CanCollide = false
+                    hrp.Massless = true
+                end
+            end
+        end
+    end
+end)
 
 --// Auto TP loop
 task.spawn(function()
@@ -199,7 +209,6 @@ end)
 player.CharacterAdded:Connect(function()
     task.wait(1) -- wait for character to fully load
     if noclipEnabled then
-        -- make sure collision stays disabled
         for _, part in pairs(player.Character:GetDescendants()) do
             if part:IsA("BasePart") then
                 part.CanCollide = false
