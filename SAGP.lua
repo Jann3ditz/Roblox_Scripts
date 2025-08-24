@@ -51,6 +51,17 @@ local function applyAllHitboxes(size)
     end
 end
 
+-- Reset all hitboxes
+local function resetHitboxes()
+    for plr, part in pairs(Hitboxes) do
+        if part and part.Parent then
+            part:Destroy()
+        end
+    end
+    Hitboxes = {}
+    hitboxEnabled = false
+end
+
 -- Reapply when new players join
 Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(function(char)
@@ -142,28 +153,40 @@ local function createGUI()
     noclipBtn.Parent = frame
 
     local hitboxLabel = Instance.new("TextLabel")
-    hitboxLabel.Size = UDim2.new(0, 120, 0, 20)
+    hitboxLabel.Size = UDim2.new(0, 280, 0, 20)
     hitboxLabel.Position = UDim2.new(0, 10, 0, 100)
-    hitboxLabel.Text = "Hitbox Size:"
+    hitboxLabel.Text = "Hitbox Command:"
     hitboxLabel.BackgroundTransparency = 1
     hitboxLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     hitboxLabel.Parent = frame
 
     local hitboxInput = Instance.new("TextBox")
-    hitboxInput.Size = UDim2.new(0, 100, 0, 25)
-    hitboxInput.Position = UDim2.new(0, 140, 0, 95)
-    hitboxInput.PlaceholderText = "Enter size"
+    hitboxInput.Size = UDim2.new(0, 200, 0, 25)
+    hitboxInput.Position = UDim2.new(0, 50, 0, 125)
+    hitboxInput.PlaceholderText = "e.g. hitbox all 50 / hitbox reset"
     hitboxInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     hitboxInput.TextColor3 = Color3.fromRGB(255, 255, 255)
     hitboxInput.Parent = frame
 
-    local applyBtn = Instance.new("TextButton")
-    applyBtn.Size = UDim2.new(0, 80, 0, 30)
-    applyBtn.Position = UDim2.new(0, 100, 0, 130)
-    applyBtn.Text = "Apply"
-    applyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
-    applyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    applyBtn.Parent = frame
+    -- Command Parser
+    hitboxInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            local input = string.lower(hitboxInput.Text)
+            local args = string.split(input, " ")
+
+            if args[1] == "hitbox" then
+                if args[2] == "all" and tonumber(args[3]) then
+                    hitboxSize = tonumber(args[3])
+                    hitboxEnabled = true
+                    applyAllHitboxes(hitboxSize)
+                elseif args[2] == "reset" then
+                    resetHitboxes()
+                end
+            end
+
+            hitboxInput.Text = "" -- clear after running
+        end
+    end)
 
     logo.MouseButton1Click:Connect(function()
         frame.Visible = not frame.Visible
@@ -185,15 +208,6 @@ local function createGUI()
         noclipEnabled = not noclipEnabled
         noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
         noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(150, 50, 200)
-    end)
-
-    applyBtn.MouseButton1Click:Connect(function()
-        local size = tonumber(hitboxInput.Text)
-        if size then
-            hitboxSize = size
-            hitboxEnabled = true
-            applyAllHitboxes(hitboxSize)
-        end
     end)
 
     return gui
