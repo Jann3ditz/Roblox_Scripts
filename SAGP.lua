@@ -8,20 +8,82 @@ local noclipEnabled = false
 local hitboxEnabled = false
 local hitboxSize = 5
 
---// Function to build GUI
+-- Table to store enemy hitboxes
+local Hitboxes = {}
+
+--// Function to make hitbox (Infinite Yield style)
+local function makeHitbox(plr, size)
+    if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = plr.Character.HumanoidRootPart
+
+        -- cleanup old
+        if Hitboxes[plr] then
+            Hitboxes[plr]:Destroy()
+            Hitboxes[plr] = nil
+        end
+
+        local box = Instance.new("Part")
+        box.Name = "FakeHitbox"
+        box.Anchored = false
+        box.CanCollide = false
+        box.Massless = true
+        box.Transparency = 0.5
+        box.Color = Color3.fromRGB(255,0,0)
+        box.Material = Enum.Material.Neon
+        box.Size = Vector3.new(size, size, size)
+        box.Parent = hrp
+
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = hrp
+        weld.Part1 = box
+        weld.Parent = box
+
+        Hitboxes[plr] = box
+    end
+end
+
+-- Apply hitboxes to all enemies
+local function applyAllHitboxes(size)
+    for _,plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player then
+            makeHitbox(plr, size)
+        end
+    end
+end
+
+-- Reapply when new players join
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function(char)
+        char:WaitForChild("HumanoidRootPart")
+        if hitboxEnabled then
+            makeHitbox(plr, hitboxSize)
+        end
+    end)
+end)
+
+-- Reapply on respawn
+for _,plr in ipairs(Players:GetPlayers()) do
+    if plr ~= player then
+        plr.CharacterAdded:Connect(function(char)
+            char:WaitForChild("HumanoidRootPart")
+            if hitboxEnabled then
+                makeHitbox(plr, hitboxSize)
+            end
+        end)
+    end
+end
+
+--// GUI Builder
 local function createGUI()
-    -- Don't duplicate if it already exists
     if player.PlayerGui:FindFirstChild("LockTPGui") then
         return player.PlayerGui.LockTPGui
     end
 
-    -- GUI Setup
     local gui = Instance.new("ScreenGui")
     gui.Name = "LockTPGui"
     gui.ResetOnSpawn = false
     gui.Parent = player:WaitForChild("PlayerGui")
 
-    -- Logo (JANN)
     local logo = Instance.new("TextButton")
     logo.Size = UDim2.new(0, 120, 0, 40)
     logo.Position = UDim2.new(0.5, -60, 0.5, -20)
@@ -34,7 +96,6 @@ local function createGUI()
     logo.Draggable = true
     logo.Parent = gui
 
-    -- Menu Frame
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 300, 0, 260)
     frame.Position = UDim2.new(0.5, -150, 0.5, -130)
@@ -44,7 +105,6 @@ local function createGUI()
     frame.Draggable = true
     frame.Parent = gui
 
-    -- Close Button
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 25, 0, 25)
     closeBtn.Position = UDim2.new(1, -30, 0, 5)
@@ -53,7 +113,6 @@ local function createGUI()
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.Parent = frame
 
-    -- Minimize Button
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
     minimizeBtn.Position = UDim2.new(1, -60, 0, 5)
@@ -62,7 +121,6 @@ local function createGUI()
     minimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
     minimizeBtn.Parent = frame
 
-    -- LockTP Button
     local lockTpBtn = Instance.new("TextButton")
     lockTpBtn.Size = UDim2.new(0, 120, 0, 40)
     lockTpBtn.Position = UDim2.new(0, 10, 0, 40)
@@ -73,7 +131,6 @@ local function createGUI()
     lockTpBtn.TextSize = 18
     lockTpBtn.Parent = frame
 
-    -- Noclip Button
     local noclipBtn = Instance.new("TextButton")
     noclipBtn.Size = UDim2.new(0, 120, 0, 40)
     noclipBtn.Position = UDim2.new(0, 160, 0, 40)
@@ -84,7 +141,6 @@ local function createGUI()
     noclipBtn.TextSize = 18
     noclipBtn.Parent = frame
 
-    -- Hitbox Label
     local hitboxLabel = Instance.new("TextLabel")
     hitboxLabel.Size = UDim2.new(0, 120, 0, 20)
     hitboxLabel.Position = UDim2.new(0, 10, 0, 100)
@@ -93,7 +149,6 @@ local function createGUI()
     hitboxLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     hitboxLabel.Parent = frame
 
-    -- Hitbox Input
     local hitboxInput = Instance.new("TextBox")
     hitboxInput.Size = UDim2.new(0, 100, 0, 25)
     hitboxInput.Position = UDim2.new(0, 140, 0, 95)
@@ -102,7 +157,6 @@ local function createGUI()
     hitboxInput.TextColor3 = Color3.fromRGB(255, 255, 255)
     hitboxInput.Parent = frame
 
-    -- Apply Button
     local applyBtn = Instance.new("TextButton")
     applyBtn.Size = UDim2.new(0, 80, 0, 30)
     applyBtn.Position = UDim2.new(0, 100, 0, 130)
@@ -111,12 +165,9 @@ local function createGUI()
     applyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     applyBtn.Parent = frame
 
-    -- Logo click toggle frame
     logo.MouseButton1Click:Connect(function()
         frame.Visible = not frame.Visible
     end)
-
-    -- Close / Minimize buttons
     closeBtn.MouseButton1Click:Connect(function()
         frame.Visible = false
     end)
@@ -124,68 +175,29 @@ local function createGUI()
         frame.Visible = false
     end)
 
-    -- Toggle LockTP
     lockTpBtn.MouseButton1Click:Connect(function()
         isToggled = not isToggled
         lockTpBtn.Text = isToggled and "LockTP: ON" or "LockTP: OFF"
         lockTpBtn.BackgroundColor3 = isToggled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 150, 250)
     end)
 
-    -- Toggle Noclip
     noclipBtn.MouseButton1Click:Connect(function()
         noclipEnabled = not noclipEnabled
         noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
         noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(150, 50, 200)
     end)
 
-    -- Apply Hitbox
     applyBtn.MouseButton1Click:Connect(function()
         local size = tonumber(hitboxInput.Text)
         if size then
             hitboxSize = size
             hitboxEnabled = true
+            applyAllHitboxes(hitboxSize)
         end
     end)
 
     return gui
 end
-
---// Hitbox Loop (Fixed Infinite Yield style)
-task.spawn(function()
-    while task.wait(0.5) do
-        if hitboxEnabled then
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local hrp = plr.Character.HumanoidRootPart
-
-                    -- remove old fake box
-                    if plr.Character:FindFirstChild("FakeHitbox") then
-                        plr.Character.FakeHitbox:Destroy()
-                    end
-
-                    -- create fake part
-                    local hitbox = Instance.new("Part")
-                    hitbox.Name = "FakeHitbox"
-                    hitbox.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                    hitbox.Transparency = 0.5
-                    hitbox.Color = Color3.fromRGB(255, 0, 0)
-                    hitbox.Material = Enum.Material.Neon
-                    hitbox.CanCollide = false
-                    hitbox.Anchored = false
-                    hitbox.Massless = true
-                    hitbox.CFrame = hrp.CFrame
-                    hitbox.Parent = plr.Character
-
-                    -- weld to HRP
-                    local weld = Instance.new("WeldConstraint")
-                    weld.Part0 = hrp
-                    weld.Part1 = hitbox
-                    weld.Parent = hrp
-                end
-            end
-        end
-    end
-end)
 
 --// Auto TP loop
 task.spawn(function()
@@ -223,7 +235,6 @@ RunService.Stepped:Connect(function()
     end
 end)
 
---// Respawn handling
 player.CharacterAdded:Connect(function()
     task.wait(1)
     if noclipEnabled then
@@ -235,7 +246,7 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
---// Always ensure GUI exists
+-- Ensure GUI always exists
 task.spawn(function()
     while true do
         if not player.PlayerGui:FindFirstChild("LockTPGui") then
@@ -245,5 +256,5 @@ task.spawn(function()
     end
 end)
 
--- Build GUI once
+-- Build once
 createGUI()
