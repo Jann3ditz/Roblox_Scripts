@@ -12,6 +12,20 @@ local hitboxSize = 5
 local Hitboxes = {}
 
 --// Function to make hitbox (Infinite Yield style)
+--// Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local isToggled = false
+local noclipEnabled = false
+local hitboxEnabled = false
+local hitboxSize = 5
+
+-- Table to store enemy hitboxes
+local Hitboxes = {}
+
+--// Function to make hitbox (Infinite Yield style, fixed parenting)
 local function makeHitbox(plr, size)
     if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = plr.Character.HumanoidRootPart
@@ -31,7 +45,8 @@ local function makeHitbox(plr, size)
         box.Color = Color3.fromRGB(255,0,0)
         box.Material = Enum.Material.Neon
         box.Size = Vector3.new(size, size, size)
-        box.Parent = hrp
+        box.CFrame = hrp.CFrame  -- ✅ spawn aligned with HRP
+        box.Parent = workspace   -- ✅ parent to workspace, not HRP
 
         local weld = Instance.new("WeldConstraint")
         weld.Part0 = hrp
@@ -83,6 +98,9 @@ for _,plr in ipairs(Players:GetPlayers()) do
         end)
     end
 end
+
+-- (everything else from your GUI, TP, noclip system stays exactly the same…)
+
 
 --// GUI Builder
 local function createGUI()
