@@ -3,12 +3,13 @@ local player = game.Players.LocalPlayer
 -- GUI Setup
 local gui = Instance.new("ScreenGui")
 gui.Name = "LockTPGui"
+gui.ResetOnSpawn = false   -- ✅ GUI stays after respawn
 gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Logo (JANN)
 local logo = Instance.new("TextButton")
 logo.Size = UDim2.new(0, 120, 0, 40)
-logo.Position = UDim2.new(0.5, -60, 0.5, -20) -- center screen
+logo.Position = UDim2.new(0.5, -60, 0.5, -20)
 logo.Text = "JANN"
 logo.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
 logo.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -21,7 +22,7 @@ logo.Parent = gui
 -- Menu Frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 300, 0, 260)
-frame.Position = UDim2.new(0.5, -150, 0.5, -130) -- center screen
+frame.Position = UDim2.new(0.5, -150, 0.5, -130)
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.Visible = false
 frame.Active = true
@@ -95,7 +96,7 @@ applyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
 applyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 applyBtn.Parent = frame
 
--- Toggle state
+-- States
 local isToggled = false
 local noclipEnabled = false
 
@@ -135,31 +136,43 @@ task.spawn(function()
     end
 end)
 
--- Noclip loop
-task.spawn(function()
-    while task.wait() do
-        if noclipEnabled and player.Character then
-            for _, part in pairs(player.Character:GetDescendants()) do
-                if part:IsA("BasePart") and part.CanCollide then
+-- Noclip loop function
+local function enableNoclipLoop(char)
+    task.spawn(function()
+        while noclipEnabled and char.Parent do
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
                     part.CanCollide = false
                 end
             end
+            task.wait()
         end
+    end)
+end
+
+-- Reapply on respawn
+player.CharacterAdded:Connect(function(char)
+    char:WaitForChild("HumanoidRootPart")
+    if noclipEnabled then
+        enableNoclipLoop(char)
     end
 end)
 
--- Button click toggle LockTP
+-- Toggle LockTP
 lockTpBtn.MouseButton1Click:Connect(function()
     isToggled = not isToggled
     lockTpBtn.Text = isToggled and "LockTP: ON" or "LockTP: OFF"
     lockTpBtn.BackgroundColor3 = isToggled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 150, 250)
 end)
 
--- Button click toggle Noclip
+-- Toggle Noclip
 noclipBtn.MouseButton1Click:Connect(function()
     noclipEnabled = not noclipEnabled
     noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
     noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(150, 50, 200)
+    if noclipEnabled and player.Character then
+        enableNoclipLoop(player.Character)
+    end
 end)
 
 -- Apply Hitbox
@@ -182,17 +195,16 @@ applyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Logo click to toggle frame
+-- Logo click toggle frame
 logo.MouseButton1Click:Connect(function()
     frame.Visible = not frame.Visible
 end)
 
--- Close button
+-- Close / Minimize buttons
 closeBtn.MouseButton1Click:Connect(function()
     frame.Visible = false
 end)
 
--- Minimize button
 minimizeBtn.MouseButton1Click:Connect(function()
     frame.Visible = false
 end)
