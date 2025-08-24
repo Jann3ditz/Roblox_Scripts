@@ -150,7 +150,7 @@ local function createGUI()
     return gui
 end
 
---// Hitbox Loop (Infinite Yield style)
+--// Hitbox Loop (Fixed Infinite Yield style)
 task.spawn(function()
     while task.wait(0.5) do
         if hitboxEnabled then
@@ -159,8 +159,8 @@ task.spawn(function()
                     local hrp = plr.Character.HumanoidRootPart
 
                     -- remove old fake box
-                    if hrp:FindFirstChild("FakeHitbox") then
-                        hrp.FakeHitbox:Destroy()
+                    if plr.Character:FindFirstChild("FakeHitbox") then
+                        plr.Character.FakeHitbox:Destroy()
                     end
 
                     -- create fake part
@@ -173,7 +173,8 @@ task.spawn(function()
                     hitbox.CanCollide = false
                     hitbox.Anchored = false
                     hitbox.Massless = true
-                    hitbox.Parent = hrp
+                    hitbox.CFrame = hrp.CFrame
+                    hitbox.Parent = plr.Character
 
                     -- weld to HRP
                     local weld = Instance.new("WeldConstraint")
