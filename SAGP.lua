@@ -1,10 +1,88 @@
---// Services
+this is the full merge it   --// Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local isToggled = false
 local noclipEnabled = false
+local hitboxEnabled = false
+local hitboxSize = 5
+
+-- Table to store enemy hitboxes
+local Hitboxes = {}
+
+--// Function to make hitbox (Infinite Yield style)
+local function makeHitbox(plr, size)
+    if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = plr.Character.HumanoidRootPart
+
+        -- cleanup old
+        if Hitboxes[plr] then
+            Hitboxes[plr]:Destroy()
+            Hitboxes[plr] = nil
+        end
+
+        local box = Instance.new("Part")
+        box.Name = "FakeHitbox"
+        box.Anchored = false
+        box.CanCollide = false
+        box.Massless = true
+        box.Transparency = 0.5
+        box.Color = Color3.fromRGB(255,0,0)
+        box.Material = Enum.Material.Neon
+        box.Size = Vector3.new(size, size, size)
+        box.Parent = hrp
+
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = hrp
+        weld.Part1 = box
+        weld.Parent = box
+
+        Hitboxes[plr] = box
+    end
+end
+
+-- Apply hitboxes to all enemies
+local function applyAllHitboxes(size)
+    for _,plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player then
+            makeHitbox(plr, size)
+        end
+    end
+end
+
+-- Reset all hitboxes
+local function resetHitboxes()
+    for plr, part in pairs(Hitboxes) do
+        if part and part.Parent then
+            part:Destroy()
+        end
+    end
+    Hitboxes = {}
+    hitboxEnabled = false
+end
+
+-- Reapply when new players join
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function(char)
+        char:WaitForChild("HumanoidRootPart")
+        if hitboxEnabled then
+            makeHitbox(plr, hitboxSize)
+        end
+    end)
+end)
+
+-- Reapply on respawn
+for _,plr in ipairs(Players:GetPlayers()) do
+    if plr ~= player then
+        plr.CharacterAdded:Connect(function(char)
+            char:WaitForChild("HumanoidRootPart")
+            if hitboxEnabled then
+                makeHitbox(plr, hitboxSize)
+            end
+        end)
+    end
+end
 
 --// GUI Builder
 local function createGUI()
@@ -30,8 +108,8 @@ local function createGUI()
     logo.Parent = gui
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 150)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -75)
+    frame.Size = UDim2.new(0, 300, 0, 260)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -130)
     frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     frame.Visible = false
     frame.Active = true
@@ -73,6 +151,42 @@ local function createGUI()
     noclipBtn.Font = Enum.Font.SourceSansBold
     noclipBtn.TextSize = 18
     noclipBtn.Parent = frame
+
+    local hitboxLabel = Instance.new("TextLabel")
+    hitboxLabel.Size = UDim2.new(0, 280, 0, 20)
+    hitboxLabel.Position = UDim2.new(0, 10, 0, 100)
+    hitboxLabel.Text = "Hitbox Command:"
+    hitboxLabel.BackgroundTransparency = 1
+    hitboxLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    hitboxLabel.Parent = frame
+
+    local hitboxInput = Instance.new("TextBox")
+    hitboxInput.Size = UDim2.new(0, 200, 0, 25)
+    hitboxInput.Position = UDim2.new(0, 50, 0, 125)
+    hitboxInput.PlaceholderText = "e.g. hitbox all 50 / hitbox reset"
+    hitboxInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    hitboxInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    hitboxInput.Parent = frame
+
+    -- Command Parser
+    hitboxInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            local input = string.lower(hitboxInput.Text)
+            local args = string.split(input, " ")
+
+            if args[1] == "hitbox" then
+                if args[2] == "all" and tonumber(args[3]) then
+                    hitboxSize = tonumber(args[3])
+                    hitboxEnabled = true
+                    applyAllHitboxes(hitboxSize)
+                elseif args[2] == "reset" then
+                    resetHitboxes()
+                end
+            end
+
+            hitboxInput.Text = "" -- clear after running
+        end
+    end)
 
     logo.MouseButton1Click:Connect(function()
         frame.Visible = not frame.Visible
