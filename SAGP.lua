@@ -5,67 +5,6 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local isToggled = false
 local noclipEnabled = false
-local hitboxEnabled = false
-local hitboxSize = 5
-
--- Table to store enemy hitboxes
-local Hitboxes = {}
-
---// Function to make hitbox (Infinite Yield style)
---// Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
-local player = Players.LocalPlayer
-local isToggled = false
-local noclipEnabled = false
-local hitboxEnabled = false
-local hitboxSize = 5
-
--- Table to store enemy hitboxes
-local Hitboxes = {}
-
---// Function to make hitbox (Infinite Yield style, fixed parenting)
-local function makeHitbox(plr, size)
-    if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = plr.Character.HumanoidRootPart
-
-        -- cleanup old
-        if Hitboxes[plr] then
-            Hitboxes[plr]:Destroy()
-            Hitboxes[plr] = nil
-        end
-
-        -- resize the REAL hitbox (HumanoidRootPart)
-        hrp.Size = Vector3.new(size, size, size)
-        hrp.Massless = true
-        hrp.CanCollide = false
-        hrp.Transparency = 1 -- invisible but functional
-        hrp.Material = Enum.Material.Plastic
-
-        -- add a VISUAL box
-        local box = Instance.new("Part")
-        box.Name = "FakeHitbox"
-        box.Anchored = false
-        box.CanCollide = false
-        box.Massless = true
-        box.Transparency = 0.5
-        box.Color = Color3.fromRGB(255, 0, 0)
-        box.Material = Enum.Material.Neon
-        box.Size = Vector3.new(size, size, size)
-        box.Parent = hrp
-
-        local weld = Instance.new("WeldConstraint")
-        weld.Part0 = hrp
-        weld.Part1 = box
-        weld.Parent = box
-
-        Hitboxes[plr] = box
-    end
-end
-
--- (everything else from your GUI, TP, noclip system stays exactly the same…)
-
 
 --// GUI Builder
 local function createGUI()
@@ -91,8 +30,8 @@ local function createGUI()
     logo.Parent = gui
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 260)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -130)
+    frame.Size = UDim2.new(0, 300, 0, 150)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -75)
     frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     frame.Visible = false
     frame.Active = true
@@ -134,42 +73,6 @@ local function createGUI()
     noclipBtn.Font = Enum.Font.SourceSansBold
     noclipBtn.TextSize = 18
     noclipBtn.Parent = frame
-
-    local hitboxLabel = Instance.new("TextLabel")
-    hitboxLabel.Size = UDim2.new(0, 280, 0, 20)
-    hitboxLabel.Position = UDim2.new(0, 10, 0, 100)
-    hitboxLabel.Text = "Hitbox Command:"
-    hitboxLabel.BackgroundTransparency = 1
-    hitboxLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    hitboxLabel.Parent = frame
-
-    local hitboxInput = Instance.new("TextBox")
-    hitboxInput.Size = UDim2.new(0, 200, 0, 25)
-    hitboxInput.Position = UDim2.new(0, 50, 0, 125)
-    hitboxInput.PlaceholderText = "e.g. hitbox all 50 / hitbox reset"
-    hitboxInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    hitboxInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-    hitboxInput.Parent = frame
-
-    -- Command Parser
-    hitboxInput.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            local input = string.lower(hitboxInput.Text)
-            local args = string.split(input, " ")
-
-            if args[1] == "hitbox" then
-                if args[2] == "all" and tonumber(args[3]) then
-                    hitboxSize = tonumber(args[3])
-                    hitboxEnabled = true
-                    applyAllHitboxes(hitboxSize)
-                elseif args[2] == "reset" then
-                    resetHitboxes()
-                end
-            end
-
-            hitboxInput.Text = "" -- clear after running
-        end
-    end)
 
     logo.MouseButton1Click:Connect(function()
         frame.Visible = not frame.Visible
