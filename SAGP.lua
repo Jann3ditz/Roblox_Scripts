@@ -138,7 +138,7 @@ local function createGUI()
         noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(150, 50, 200)
     end)
 
-    -- Apply Hitbox (Infinite Yield style)
+    -- Apply Hitbox
     applyBtn.MouseButton1Click:Connect(function()
         local size = tonumber(hitboxInput.Text)
         if size then
@@ -150,19 +150,36 @@ local function createGUI()
     return gui
 end
 
---// Hitbox Loop
+--// Hitbox Loop (Infinite Yield style)
 task.spawn(function()
     while task.wait(0.5) do
         if hitboxEnabled then
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                     local hrp = plr.Character.HumanoidRootPart
-                    hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                    hrp.Transparency = 0.5
-                    hrp.Color = Color3.fromRGB(255, 0, 0)
-                    hrp.Material = Enum.Material.Neon
-                    hrp.CanCollide = false
-                    hrp.Massless = true
+
+                    -- remove old fake box
+                    if hrp:FindFirstChild("FakeHitbox") then
+                        hrp.FakeHitbox:Destroy()
+                    end
+
+                    -- create fake part
+                    local hitbox = Instance.new("Part")
+                    hitbox.Name = "FakeHitbox"
+                    hitbox.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    hitbox.Transparency = 0.5
+                    hitbox.Color = Color3.fromRGB(255, 0, 0)
+                    hitbox.Material = Enum.Material.Neon
+                    hitbox.CanCollide = false
+                    hitbox.Anchored = false
+                    hitbox.Massless = true
+                    hitbox.Parent = hrp
+
+                    -- weld to HRP
+                    local weld = Instance.new("WeldConstraint")
+                    weld.Part0 = hrp
+                    weld.Part1 = hitbox
+                    weld.Parent = hrp
                 end
             end
         end
@@ -205,9 +222,9 @@ RunService.Stepped:Connect(function()
     end
 end)
 
---// Respawn handling (restore noclip if needed)
+--// Respawn handling
 player.CharacterAdded:Connect(function()
-    task.wait(1) -- wait for character to fully load
+    task.wait(1)
     if noclipEnabled then
         for _, part in pairs(player.Character:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -217,7 +234,7 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
---// Always ensure GUI exists (safe against respawn)
+--// Always ensure GUI exists
 task.spawn(function()
     while true do
         if not player.PlayerGui:FindFirstChild("LockTPGui") then
@@ -227,5 +244,5 @@ task.spawn(function()
     end
 end)
 
--- Build GUI once at start
+-- Build GUI once
 createGUI()
