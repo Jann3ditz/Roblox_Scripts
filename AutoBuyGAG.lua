@@ -32,7 +32,7 @@ local customSpeed, customJump = 32, 50
 -- [DATA]
 local seedItems = { "Carrot", "Strawberry", "Blueberry" ,"Orange Tulip", "Tomato", "Daffodil", "Watermelon", "Pumpkin", "Apple", "Bamboo", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Grape", "Mushroom", "Pepper", "Cacao", "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone Seed", "Elder Strawberry Seed", "Romanesco"}
 local gearItems = {"Watering Can", "Trading Ticket", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler", "Godly Sprinkler", "Magnifying Glass", "Master Sprinkler", "Cleaning Spray", "Favorite Tool", "Friendship Pot", "Harvest Tool", "Tanning Mirror", "Levelup Lollipop", "Medium Treat", "Medium Toy", "Grandmaster Sprinkler", "Cleansing Pet Shard"}
-local eggItems = {"Common Egg", "Common Summer Egg", "Rare Summer Egg", "Mythical Egg", "Paradise Egg" , "Bug Egg"}
+local eggItems = {"Common Egg", "Uncommon Egg", "Rare Summer Egg", "Legendary Egg", "Mythical Egg" , "Bug Egg"}
 
 -- [GUI ROOT]
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
@@ -286,6 +286,7 @@ local merchantUI = PlayerGui:FindFirstChild("TravelingMerchantShop_UI")
 -- ✅ Correct UI names for Seed and Gear Shop
 local SeedShopUI = PlayerGui:FindFirstChild("Seed_Shop")
 local GearShopUI = PlayerGui:FindFirstChild("Gear_Shop")
+local CosmeticShopUI = PlayerGui:FindFirstChild("Cosmetic_Shop")
 
 -- 🔒 Hide all shop UIs by default
 if EventShopUI then EventShopUI.Enabled = false end
@@ -293,13 +294,16 @@ if dailyUI then dailyUI.Enabled = false end
 if merchantUI then merchantUI.Enabled = false end
 if SeedShopUI then SeedShopUI.Enabled = false end
 if GearShopUI then GearShopUI.Enabled = false end
+if CosmeticShopUI then CosmeticShopUI.Enabled = false end
+
 
 -- 🧭 Create toggle buttons in Quest tab
-createQuestButton("Tranquil Treasures", 0, EventShopUI)
+createQuestButton("Beans Shop", 0, EventShopUI)
 createQuestButton("Daily Quest", 1, dailyUI)
 createQuestButton("Travelling Merchant", 2, merchantUI)
 createQuestButton("Seed Shop", 3, SeedShopUI)
 createQuestButton("Gear Shop", 4, GearShopUI)
+createQuestButton("Cosmetic Shop", 5, CosmeticShopUI)
 
 -- [MULTISELECT SYSTEM]
 local function createMultiSelectSection(name, items, parent, selectedTable)
